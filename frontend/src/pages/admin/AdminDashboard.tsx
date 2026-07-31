@@ -12,15 +12,6 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const [whatsappTicker, setWhatsappTicker] = useState('');
-  const [footerContact, setFooterContact] = useState('');
-  const [configSaving, setConfigSaving] = useState(false);
-
-  const [quickTitle, setQuickTitle] = useState('');
-  const [quickPrice, setQuickPrice] = useState('');
-  const [quickCategory, setQuickCategory] = useState('');
-  const [quickSaving, setQuickSaving] = useState(false);
-
   useEffect(() => {
     const token = sessionStorage.getItem('admin_token');
     if (!token) {
@@ -40,31 +31,6 @@ export default function AdminDashboard() {
       setError(res.error || 'Failed to load dashboard');
     }
     setLoading(false);
-  }
-
-  async function handleQuickAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!quickTitle.trim() || !quickPrice) return;
-    setQuickSaving(true);
-    const formData = new FormData();
-    formData.append('name', quickTitle.trim());
-    formData.append('price', quickPrice);
-    if (quickCategory) formData.append('category', quickCategory);
-    formData.append('stock', '1');
-    const res = await api.createProduct(formData);
-    if (res.success) {
-      setQuickTitle('');
-      setQuickPrice('');
-      setQuickCategory('');
-      loadDashboard();
-    }
-    setQuickSaving(false);
-  }
-
-  async function handleUpdateConfig() {
-    setConfigSaving(true);
-    await new Promise((r) => setTimeout(r, 500));
-    setConfigSaving(false);
   }
 
   if (loading) {
@@ -140,6 +106,40 @@ export default function AdminDashboard() {
             />
           </div>
 
+          {/* Quick Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Link
+              to="/admin/products/add"
+              className="flex items-center gap-3 bg-white border border-ash rounded p-4 hover:border-[#004ac6] hover:shadow-sm transition-all"
+            >
+              <span className="material-symbols-outlined text-2xl text-[#004ac6]">add_circle</span>
+              <div>
+                <span className="font-sans text-body-sm font-semibold text-ink-black block">Add New Product</span>
+                <span className="font-sans text-caption text-smoke">Full product form</span>
+              </div>
+            </Link>
+            <Link
+              to="/admin/offers"
+              className="flex items-center gap-3 bg-white border border-ash rounded p-4 hover:border-[#004ac6] hover:shadow-sm transition-all"
+            >
+              <span className="material-symbols-outlined text-2xl text-[#004ac6]">campaign</span>
+              <div>
+                <span className="font-sans text-body-sm font-semibold text-ink-black block">Manage Banners</span>
+                <span className="font-sans text-caption text-smoke">Add or edit offers</span>
+              </div>
+            </Link>
+            <Link
+              to="/admin/settings"
+              className="flex items-center gap-3 bg-white border border-ash rounded p-4 hover:border-[#004ac6] hover:shadow-sm transition-all"
+            >
+              <span className="material-symbols-outlined text-2xl text-[#004ac6]">tune</span>
+              <div>
+                <span className="font-sans text-body-sm font-semibold text-ink-black block">Website Settings</span>
+                <span className="font-sans text-caption text-smoke">Edit store info & links</span>
+              </div>
+            </Link>
+          </div>
+
           {/* Recent Products Table */}
           <div className="bg-white border border-ash rounded overflow-hidden">
             <div className="flex items-center justify-between p-5 border-b border-ash">
@@ -213,90 +213,6 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               )}
-            </div>
-          </div>
-
-          {/* Quick Add & Config Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Quick Add Product */}
-            <div className="bg-white border border-ash rounded p-5">
-              <h2 className="font-serif text-title-md text-ink-black mb-4">Quick Add Product</h2>
-              <form onSubmit={handleQuickAdd} className="space-y-4">
-                <div className="border-2 border-dashed border-ash rounded p-6 text-center">
-                  <span className="material-symbols-outlined text-2xl text-smoke/50 block mb-1">add_photo_alternate</span>
-                  <p className="font-sans text-caption text-smoke">Upload image</p>
-                </div>
-                <input
-                  type="text"
-                  value={quickTitle}
-                  onChange={(e) => setQuickTitle(e.target.value)}
-                  placeholder="Product title"
-                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]"
-                  required
-                />
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="number"
-                    value={quickPrice}
-                    onChange={(e) => setQuickPrice(e.target.value)}
-                    placeholder="Price"
-                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]"
-                    required
-                  />
-                  <input
-                    type="text"
-                    value={quickCategory}
-                    onChange={(e) => setQuickCategory(e.target.value)}
-                    placeholder="Category"
-                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]"
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={quickSaving}
-                  className="w-full py-2.5 bg-[#004ac6] text-white font-sans text-label-sm uppercase tracking-widest rounded hover:bg-[#003b9e] disabled:opacity-50 transition-colors"
-                >
-                  {quickSaving ? 'Saving...' : 'Save Product'}
-                </button>
-              </form>
-            </div>
-
-            {/* Global Config */}
-            <div className="bg-white border border-ash rounded p-5">
-              <h2 className="font-serif text-title-md text-ink-black mb-4">Global Config</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
-                    WhatsApp Ticker Text
-                  </label>
-                  <input
-                    type="text"
-                    value={whatsappTicker}
-                    onChange={(e) => setWhatsappTicker(e.target.value)}
-                    placeholder="e.g. Free delivery on orders above ₹999"
-                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]"
-                  />
-                </div>
-                <div>
-                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
-                    Footer Contact Info
-                  </label>
-                  <textarea
-                    value={footerContact}
-                    onChange={(e) => setFooterContact(e.target.value)}
-                    placeholder="Phone, email, address..."
-                    rows={3}
-                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6] resize-none"
-                  />
-                </div>
-                <button
-                  onClick={handleUpdateConfig}
-                  disabled={configSaving}
-                  className="w-full py-2.5 bg-[#004ac6] text-white font-sans text-label-sm uppercase tracking-widest rounded hover:bg-[#003b9e] disabled:opacity-50 transition-colors"
-                >
-                  {configSaving ? 'Updating...' : 'Update Config'}
-                </button>
-              </div>
             </div>
           </div>
         </div>
