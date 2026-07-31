@@ -19,6 +19,20 @@ interface ImageEntry {
   type: 'main' | 'additional';
 }
 
+const PRESET_COLORS = [
+  { name: 'Natural Titanium', code: '#bebaa7' },
+  { name: 'Deep Blue', code: '#2c3e50' },
+  { name: 'Titanium Gray', code: '#708090' },
+  { name: 'Titanium Black', code: '#1c1c1c' },
+  { name: 'Midnight Black', code: '#000000' },
+  { name: 'Saddle Brown', code: '#8B4513' },
+  { name: 'Glossy White', code: '#FFFFFF' },
+  { name: 'Ocean Orange', code: '#FF6F00' },
+  { name: 'Rose Gold', code: '#B76E79' },
+  { name: 'Emerald Green', code: '#00875A' },
+  { name: 'Royal Violet', code: '#6B46C1' },
+];
+
 export default function AdminProductForm() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -127,8 +141,8 @@ export default function AdminProductForm() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function addVariant() {
-    setVariants((prev) => [...prev, { color: '', color_code: '#000000', model: '', stock: 0 }]);
+  function addVariant(colorName = 'Midnight Black', colorCode = '#000000') {
+    setVariants((prev) => [...prev, { color: colorName, color_code: colorCode, model: '', stock: 10 }]);
   }
 
   function updateVariant(index: number, field: keyof VariantEntry, value: string | number) {
@@ -205,10 +219,8 @@ export default function AdminProductForm() {
           <div className="max-w-container mx-auto space-y-6 animate-pulse">
             <div className="h-8 w-48 bg-ash/50 rounded" />
             <div className="bg-white border border-ash rounded p-6 space-y-5">
-              <div className="h-6 w-32 bg-ash/50 rounded" />
               <div className="h-10 w-full bg-ash/50 rounded" />
               <div className="h-10 w-full bg-ash/50 rounded" />
-              <div className="h-10 w-1/2 bg-ash/50 rounded" />
             </div>
           </div>
         </main>
@@ -312,36 +324,59 @@ export default function AdminProductForm() {
               </div>
             </div>
 
-            {/* Variants */}
+            {/* Color Palette & Variants */}
             <div className="bg-white border border-ash rounded p-5 space-y-4">
-              <div className="flex items-center justify-between">
-                <h2 className="font-serif text-title-md text-ink-black">Variants &amp; Color Swatches</h2>
-                <button type="button" onClick={addVariant} className="font-sans text-label-sm text-[#004ac6] hover:underline flex items-center gap-1 font-semibold">
-                  <span className="material-symbols-outlined text-lg">add</span> Add Variant
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="font-serif text-title-md text-ink-black">Color Swatches &amp; Model Variants</h2>
+                  <p className="font-sans text-caption text-smoke">Click a color palette swatch below to add a color variant easily!</p>
+                </div>
+                <button type="button" onClick={() => addVariant()} className="font-sans text-label-sm text-[#004ac6] hover:underline flex items-center gap-1 font-semibold shrink-0">
+                  <span className="material-symbols-outlined text-lg">add</span> Add Custom Variant
                 </button>
               </div>
+
+              {/* Visual Color Palette Swatches */}
+              <div className="p-3 bg-[#fbf8f6] border border-ash rounded space-y-2">
+                <span className="font-sans text-caption font-bold text-smoke uppercase tracking-wider block">Quick Color Palette Picker:</span>
+                <div className="flex flex-wrap gap-2">
+                  {PRESET_COLORS.map((preset, pIdx) => (
+                    <button
+                      key={pIdx}
+                      type="button"
+                      onClick={() => addVariant(preset.name, preset.code)}
+                      className="flex items-center gap-1.5 px-3 py-1 bg-white border border-ash hover:border-ink-black rounded-full font-sans text-caption text-ink-black transition-all shadow-sm"
+                    >
+                      <span className="w-3.5 h-3.5 rounded-full border border-ash/80 inline-block shrink-0" style={{ backgroundColor: preset.code }} />
+                      <span>{preset.name}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {variants.length === 0 && (
-                <p className="font-sans text-body-sm text-smoke">No variants added yet.</p>
+                <p className="font-sans text-body-sm text-smoke italic">No variants added yet. Select a color above to add one.</p>
               )}
+
               {variants.map((v, i) => (
-                <div key={i} className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end p-3 border border-ash rounded bg-[#fbf8f6]">
+                <div key={i} className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end p-3.5 border border-ash rounded bg-white shadow-sm">
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Color Name</label>
-                    <input type="text" value={v.color} onChange={(e) => updateVariant(i, 'color', e.target.value)} placeholder="e.g. Titanium Gray" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
+                    <label className="font-sans text-caption font-semibold text-smoke block mb-1">Color Name</label>
+                    <input type="text" value={v.color} onChange={(e) => updateVariant(i, 'color', e.target.value)} placeholder="e.g. Natural Titanium" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
                   </div>
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Color Code</label>
+                    <label className="font-sans text-caption font-semibold text-smoke block mb-1">Visual Palette Swatch</label>
                     <div className="flex gap-2 items-center">
-                      <input type="color" value={v.color_code} onChange={(e) => updateVariant(i, 'color_code', e.target.value)} className="w-8 h-8 p-0 border border-ash rounded cursor-pointer shrink-0" />
-                      <input type="text" value={v.color_code} onChange={(e) => updateVariant(i, 'color_code', e.target.value)} className="flex-1 px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
+                      <input type="color" value={v.color_code} onChange={(e) => updateVariant(i, 'color_code', e.target.value)} className="w-9 h-9 p-0.5 border border-ash rounded-full cursor-pointer shrink-0" title="Click to pick swatch" />
+                      <span className="w-6 h-6 rounded-full border border-ash inline-block" style={{ backgroundColor: v.color_code }} />
                     </div>
                   </div>
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Model / Specs</label>
-                    <input type="text" value={v.model} onChange={(e) => updateVariant(i, 'model', e.target.value)} placeholder="e.g. 256GB" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
+                    <label className="font-sans text-caption font-semibold text-smoke block mb-1">Model / Specs</label>
+                    <input type="text" value={v.model} onChange={(e) => updateVariant(i, 'model', e.target.value)} placeholder="e.g. 256GB / Pro" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
                   </div>
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Stock</label>
+                    <label className="font-sans text-caption font-semibold text-smoke block mb-1">Stock</label>
                     <input type="number" value={v.stock} onChange={(e) => updateVariant(i, 'stock', Number(e.target.value))} className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
                   </div>
                   <button type="button" onClick={() => removeVariant(i)} className="font-sans text-label-sm text-red-600 hover:underline py-2">

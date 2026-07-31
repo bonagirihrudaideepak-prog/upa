@@ -5,6 +5,48 @@ const jwt = require('jsonwebtoken');
 const { db, formatProduct } = require('../db');
 const { JWT_SECRET, verifyAdmin } = require('../middleware/auth');
 
+// Public: Get Site Settings
+router.get('/settings', async (req, res) => {
+  try {
+    const rows = await db('site_settings').select('setting_key', 'setting_value');
+    const settings = {};
+    rows.forEach(r => {
+      settings[r.setting_key] = r.setting_value;
+    });
+    res.json(settings);
+  } catch (err) {
+    console.error('Error fetching site settings:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Admin: Update Site Settings
+router.post('/admin/settings', verifyAdmin, async (req, res) => {
+  try {
+    const settingsObj = req.body || {};
+    const keys = Object.keys(settingsObj);
+    
+    for (const key of keys) {
+      const val = String(settingsObj[key]);
+      const exists = await db('site_settings').where('setting_key', key).first();
+      if (exists) {
+        await db('site_settings').where('setting_key', key).update({ setting_value: val, updated_at: db.fn.now() });
+      } else {
+        await db('site_settings').insert({ setting_key: key, setting_value: val });
+      }
+    }
+
+    const rows = await db('site_settings').select('setting_key', 'setting_value');
+    const settings = {};
+    rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+
+    res.json({ message: 'Settings updated successfully', settings });
+  } catch (err) {
+    console.error('Error updating site settings:', err);
+    res.status(500).json({ error: 'Failed to update site settings' });
+  }
+});
+
 // Admin Login
 router.post('/admin/login', async (req, res) => {
   try {

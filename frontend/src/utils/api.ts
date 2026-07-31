@@ -202,4 +202,15 @@ export const api = {
       body: JSON.stringify({ path }),
     });
   },
+
+  getSettings() {
+    return request<Record<string, string>>('/api/settings');
+  },
+
+  updateSettings(data: Record<string, string>) {
+    return request<{ message: string; settings: Record<string, string> }>('/api/admin/settings', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
 };

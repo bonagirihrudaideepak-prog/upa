@@ -10,6 +10,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminOffers from './pages/admin/AdminOffers';
 import AdminCategories from './pages/admin/AdminCategories';
+import AdminSettings from './pages/admin/AdminSettings';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/admin/products/:id/edit" element={<AdminProductForm />} />
         <Route path="/admin/offers" element={<AdminOffers />} />
         <Route path="/admin/categories" element={<AdminCategories />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
       </Routes>
     </AppProvider>
   );

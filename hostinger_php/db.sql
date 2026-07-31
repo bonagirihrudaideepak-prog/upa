@@ -86,9 +86,28 @@ CREATE TABLE IF NOT EXISTS `admin_users` (
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- 8. Site Settings Table
+CREATE TABLE IF NOT EXISTS `site_settings` (
+    `setting_key` VARCHAR(100) PRIMARY KEY,
+    `setting_value` TEXT,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ========================================================
 -- SEED DATA
 -- ========================================================
+
+-- Site Settings
+INSERT INTO `site_settings` (`setting_key`, `setting_value`) VALUES
+('store_name', 'Upanishad Mobile Store'),
+('marquee_text', '⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡'),
+('contact_phone', '+91 96667 31286'),
+('whatsapp_number', '+919666731286'),
+('instagram_url', 'https://www.instagram.com/upanishadmobiles/'),
+('location_map_url', 'https://maps.app.goo.gl/JRej6So64iYYm7ia6'),
+('hero_title', 'Modern Tech, Curated for You'),
+('hero_subtitle', 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories')
+ON DUPLICATE KEY UPDATE `setting_value`=VALUES(`setting_value`);
 
 -- Admin User: admin / admin123
 INSERT INTO `admin_users` (`username`, `password_hash`) VALUES

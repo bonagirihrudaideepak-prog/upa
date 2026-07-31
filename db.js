@@ -160,6 +160,16 @@ async function initDb() {
       console.log('[DB] Created "admin_users" table');
     }
 
+    // 8. Site Settings (Full dynamic site content management)
+    if (!(await db.schema.hasTable('site_settings'))) {
+      await db.schema.createTable('site_settings', table => {
+        table.string('setting_key', 100).primary();
+        table.text('setting_value');
+        table.timestamp('updated_at').defaultTo(db.fn.now());
+      });
+      console.log('[DB] Created "site_settings" table');
+    }
+
     // Seed default admin if missing
     const adminCount = await db('admin_users').count('id as count').first();
     if (!adminCount || parseInt(adminCount.count) === 0) {
@@ -169,6 +179,23 @@ async function initDb() {
         password_hash: passwordHash
       });
       console.log('[DB] Seeded default admin user (username: admin, password: admin123)');
+    }
+
+    // Seed default site settings if empty
+    const settingsCount = await db('site_settings').count('setting_key as count').first();
+    if (!settingsCount || parseInt(settingsCount.count) === 0) {
+      await db('site_settings').insert([
+        { setting_key: 'store_name', setting_value: 'Upanishad Mobile Store' },
+        { setting_key: 'marquee_text', setting_value: '⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡' },
+        { setting_key: 'contact_phone', setting_value: '+91 96667 31286' },
+        { setting_key: 'whatsapp_number', setting_value: '+919666731286' },
+        { setting_key: 'instagram_url', setting_value: 'https://www.instagram.com/upanishadmobiles/' },
+        { setting_key: 'location_map_url', setting_value: 'https://maps.app.goo.gl/JRej6So64iYYm7ia6' },
+        { setting_key: 'hero_title', setting_value: 'Modern Tech, Curated for You' },
+        { setting_key: 'hero_subtitle', setting_value: 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories' },
+        { setting_key: 'footer_subtitle', setting_value: 'Store Pickup Only • Premium Smartphones, Cases & Accessories' }
+      ]);
+      console.log('[DB] Seeded default site settings');
     }
 
     // Seed default categories if missing
@@ -367,7 +394,7 @@ async function initDb() {
           title: 'Customized Phone Covers Booking Open!',
           description: 'Print your photo, name, or custom art on premium toughened glass covers. Fast store pickup!',
           image_path: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200',
-          link: '/customization',
+          link: '/catalog',
           is_active: true
         },
         {

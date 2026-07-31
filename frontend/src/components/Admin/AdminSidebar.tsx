@@ -28,8 +28,8 @@ export default function AdminSidebar() {
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-0 bottom-0 w-80 bg-white border-r border-ash z-40">
       <div className="px-6 pt-8 pb-6">
-        <Link to="/admin/dashboard" className="font-serif text-headline-sm text-ink-black tracking-tight">
-          Deepak Electronics
+        <Link to="/admin/dashboard" className="font-serif text-title-md font-bold text-ink-black tracking-tight">
+          Upanishad Mobile Store
         </Link>
       </div>
 

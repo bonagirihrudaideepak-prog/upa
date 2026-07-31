@@ -94,6 +94,33 @@ function formatProductRow($p, $pdo) {
 
 // API ROUTING
 
+// 0. GET /api/settings
+if (preg_match('#^/api/settings$#i', $uri) && $method === 'GET') {
+    $stmt = $pdo->query("SELECT setting_key, setting_value FROM site_settings");
+    $rows = $stmt->fetchAll();
+    $settings = [];
+    foreach ($rows as $r) {
+        $settings[$r['setting_key']] = $r['setting_value'];
+    }
+    echo json_encode($settings);
+    exit;
+}
+
+// 0.1 POST /api/admin/settings
+if (preg_match('#^/api/admin/settings$#i', $uri) && $method === 'POST') {
+    $input = getJsonInput();
+    foreach ($input as $key => $val) {
+        $stmt = $pdo->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+        $stmt->execute([$key, (string)$val, (string)$val]);
+    }
+    $stmt = $pdo->query("SELECT setting_key, setting_value FROM site_settings");
+    $rows = $stmt->fetchAll();
+    $settings = [];
+    foreach ($rows as $r) { $settings[$r['setting_key']] = $r['setting_value']; }
+    echo json_encode(['message' => 'Settings updated successfully', 'settings' => $settings]);
+    exit;
+}
+
 // 1. GET /api/categories
 if (preg_match('#^/api/categories$#i', $uri) && $method === 'GET') {
     $stmt = $pdo->query("SELECT * FROM categories WHERE is_active = TRUE ORDER BY display_order ASC, name ASC");
