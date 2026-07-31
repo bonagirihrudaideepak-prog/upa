@@ -8,12 +8,13 @@ function getDbConfig() {
   const dbHost = process.env.DB_HOST;
   const dbType = (process.env.DB_TYPE || '').toLowerCase();
 
+  // 1. PostgreSQL (Render Managed Postgres)
   if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://') || dbType === 'postgres' || dbType === 'postgresql')) {
     let connectionUrl = dbUrl;
-    // Fix render postgres URL format if needed
     if (connectionUrl.startsWith('postgres://')) {
       connectionUrl = connectionUrl.replace('postgres://', 'postgresql://');
     }
+    console.log('[DB] Connecting to PostgreSQL database...');
     return {
       client: 'pg',
       connection: {
@@ -22,7 +23,11 @@ function getDbConfig() {
       },
       pool: { min: 2, max: 10 }
     };
-  } else if (dbHost || dbType === 'mysql') {
+  }
+  
+  // 2. MySQL (only if DB_TYPE is explicitly set to 'mysql')
+  if (dbType === 'mysql') {
+    console.log('[DB] Connecting to MySQL database...');
     return {
       client: 'mysql2',
       connection: {
@@ -35,23 +40,24 @@ function getDbConfig() {
       },
       pool: { min: 2, max: 10 }
     };
-  } else {
-    // Default zero-config fallback to SQLite
-    const dataDir = path.join(__dirname, 'data');
-    if (!fs.existsSync(dataDir)) {
-      fs.mkdirSync(dataDir, { recursive: true });
-    }
-    return {
-      client: 'sqlite3',
-      connection: {
-        filename: path.join(dataDir, 'upanishad.sqlite')
-      },
-      useNullAsDefault: true
-    };
   }
+
+  // 3. Default zero-config fallback to SQLite
+  console.log('[DB] Using embedded SQLite database...');
+  const dataDir = path.join(__dirname, 'data');
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+  return {
+    client: 'sqlite3',
+    connection: {
+      filename: path.join(dataDir, 'upanishad.sqlite')
+    },
+    useNullAsDefault: true
+  };
 }
 
-const db = knex(getDbConfig());
+let db = knex(getDbConfig());
 
 async function initDb() {
   try {
