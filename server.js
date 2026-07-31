@@ -14,7 +14,7 @@ const adminRouter = require('./routes/admin');
 const uploadRouter = require('./routes/upload');
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 10000;
 
 // Enable CORS
 app.use(cors());
@@ -54,13 +54,22 @@ if (fs.existsSync(frontendDist)) {
   });
 }
 
-// Start Server & Initialize Database
-app.listen(PORT, async () => {
-  console.log(`==========================================`);
-  console.log(`🚀 Upanishad Store Node Backend Running!`);
-  console.log(`📡 Listening on Port: ${PORT}`);
-  console.log(`==========================================`);
-  await initDb();
-});
+// Initialize Database BEFORE starting server
+async function startServer() {
+  try {
+    await initDb();
+    app.listen(PORT, () => {
+      console.log(`==========================================`);
+      console.log(`🚀 Upanishad Store Node Backend Running!`);
+      console.log(`📡 Listening on Port: ${PORT}`);
+      console.log(`==========================================`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 module.exports = app;

@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-slim
 
 WORKDIR /app
 
@@ -12,6 +12,9 @@ RUN cd frontend && npm install
 
 # Copy application source
 COPY . .
+
+# Ensure data and uploads directories exist with write permissions
+RUN mkdir -p data uploads && chmod -R 777 data uploads
 
 # Build frontend production bundle
 RUN npm run build
