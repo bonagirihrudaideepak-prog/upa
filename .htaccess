@@ -1,0 +1,51 @@
+RewriteEngine On
+
+# Handle admin API routes
+RewriteRule ^api/admin/(.*)$ backend/index.php?route=api/admin/$1 [QSA,L]
+
+# Handle public API routes
+RewriteRule ^api/(.*)$ backend/index.php?route=api/$1 [QSA,L]
+
+# Serve React build assets directly
+RewriteRule ^assets/(.*)$ frontend/dist/assets/$1 [L]
+
+# Serve existing files (uploads, etc.)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+# SPA fallback - all other requests serve the React app
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ frontend/dist/index.html [QSA,L]
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Block access to sensitive files
+<FilesMatch "\.(env|sql|md|log|json)$">
+    Require all denied
+</FilesMatch>
+
+# Block access to backend source
+RewriteRule ^backend/ - [F,L]
+
+# Enable compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css application/json application/javascript text/xml application/xml text/javascript
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
