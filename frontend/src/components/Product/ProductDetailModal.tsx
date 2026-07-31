@@ -6,7 +6,7 @@ interface ProductDetailModalProps {
   product: Product | null;
   isOpen: boolean;
   onClose: () => void;
-  onAddToCart: (product: Product, variant?: ProductVariant) => void;
+  onAddToCart?: (product: Product, variant?: ProductVariant) => void;
 }
 
 function formatLikes(count: number): string {
@@ -15,12 +15,13 @@ function formatLikes(count: number): string {
   return count.toString();
 }
 
-export default function ProductDetailModal({ product, isOpen, onClose, onAddToCart }: ProductDetailModalProps) {
+export default function ProductDetailModal({ product, isOpen, onClose }: ProductDetailModalProps) {
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [likesCount, setLikesCount] = useState(0);
   const [liked, setLiked] = useState(false);
   const [liking, setLiking] = useState(false);
+  const [showPickupNotice, setShowPickupNotice] = useState(false);
 
   useEffect(() => {
     if (product) {
@@ -28,6 +29,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
       setLiked(false);
       setSelectedColor('');
       setSelectedModel('');
+      setShowPickupNotice(false);
     }
   }, [product]);
 
@@ -45,14 +47,6 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
 
   const uniqueModels = [...new Set(p.variants?.map((v) => v.model) ?? [])];
 
-  function getSelectedVariant(): ProductVariant | undefined {
-    return p.variants?.find((v) => {
-      const colorMatch = !selectedColor || v.color_code === selectedColor;
-      const modelMatch = !selectedModel || v.model === selectedModel;
-      return colorMatch && modelMatch;
-    });
-  }
-
   async function handleLike() {
     if (liking) return;
     setLiking(true);
@@ -64,10 +58,16 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
     setLiking(false);
   }
 
-  function handleAddToCart() {
-    const variant = getSelectedVariant();
-    onAddToCart(p, variant);
-  }
+  const selectedColorObj = uniqueColors.find(c => c.code === selectedColor);
+  const colorName = selectedColorObj ? selectedColorObj.color : '';
+
+  const orderMessage = `Hi Deepak Electronics! I want to order/pickup:
+- Product: ${p.name}
+- Price: ₹${p.price}
+${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${colorName}\n` : ''}- Order Type: Store Pickup / Takeaway`;
+
+  const whatsappUrl = `https://wa.me/919999999999?text=${encodeURIComponent(orderMessage)}`;
+  const instagramUrl = `https://instagram.com/`;
 
   return (
     <div
@@ -80,7 +80,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
     >
       <style>{'@keyframes fadeIn{from{opacity:0}to{opacity:1}}'}</style>
       <div
-        className="relative w-full max-w-2xl mx-auto my-8 bg-white border border-ash rounded overflow-hidden"
+        className="relative w-full max-w-2xl mx-auto my-8 bg-white border border-ash rounded overflow-hidden shadow-lg"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -101,6 +101,11 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
           ) : (
             <div className="w-full h-full flex items-center justify-center text-smoke">
               <span className="material-symbols-outlined text-6xl">image</span>
+            </div>
+          )}
+          {p.is_out_of_stock && (
+            <div className="absolute top-4 left-4 bg-red-600 text-white font-sans text-caption font-bold px-3 py-1 rounded uppercase tracking-wider">
+              Out of Stock
             </div>
           )}
         </div>
@@ -135,7 +140,9 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
 
           {uniqueColors.length > 0 && (
             <div>
-              <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">Color</p>
+              <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">
+                Color {colorName ? `: ${colorName}` : ''}
+              </p>
               <div className="flex gap-2 flex-wrap">
                 {uniqueColors.map((c) => (
                   <button
@@ -161,7 +168,7 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
                 onChange={(e) => setSelectedModel(e.target.value)}
                 className="w-full border border-ash rounded px-3 py-2 font-body-md text-body-md text-ink-black bg-white focus:outline-none focus:border-ink-black transition-colors"
               >
-                <option value="">Select model</option>
+                <option value="">Select model (e.g. iPhone 17, 16, 15...)</option>
                 {uniqueModels.map((m) => (
                   <option key={m} value={m}>
                     {m}
@@ -186,12 +193,50 @@ export default function ProductDetailModal({ product, isOpen, onClose, onAddToCa
             )}
           </div>
 
-          <button
-            onClick={handleAddToCart}
-            className="w-full bg-ink-black text-white font-label-sm text-label-sm px-6 py-3 rounded uppercase hover:bg-smoke transition-colors tracking-wider"
-          >
-            Add to Cart
-          </button>
+          {/* Store Pickup / Takeaway Notice & Order Actions */}
+          {showPickupNotice ? (
+            <div className="bg-[#fcf8f2] border border-[#f5c6cb] rounded p-4 space-y-3 animate-fadeIn">
+              <div className="flex items-start gap-2.5">
+                <span className="material-symbols-outlined text-[#856404] text-xl">store</span>
+                <div>
+                  <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup & Takeaway Only</p>
+                  <p className="font-sans text-caption text-[#856404] mt-0.5">
+                    Our store currently accepts in-store pickups & takeaways (no delivery option yet). Connect via WhatsApp or Instagram to confirm your order details!
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#25D366] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded hover:bg-[#20bd5a] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">chat</span>
+                  Order on WhatsApp
+                </a>
+                <a
+                  href={instagramUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#E1306C] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded hover:bg-[#c1275b] transition-colors"
+                >
+                  <span className="material-symbols-outlined text-lg">photo_camera</span>
+                  Order on Instagram
+                </a>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowPickupNotice(true)}
+              disabled={p.is_out_of_stock}
+              className="w-full bg-ink-black text-white font-label-sm text-label-sm px-6 py-3 rounded uppercase hover:bg-smoke disabled:bg-ash disabled:cursor-not-allowed transition-colors tracking-wider flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-lg">shopping_bag</span>
+              {p.is_out_of_stock ? 'Out of Stock' : 'Add to Cart / Order Now'}
+            </button>
+          )}
         </div>
       </div>
     </div>

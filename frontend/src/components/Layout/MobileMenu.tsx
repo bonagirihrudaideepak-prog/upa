@@ -53,7 +53,7 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
         <div className="flex flex-col h-full">
           {/* Close button */}
           <div className="flex items-center justify-between px-gutter h-14 border-b border-ash">
-            <span className="font-serif text-title-sm text-ink-black">Menu</span>
+            <span className="font-serif text-title-sm text-ink-black">Categories & Menu</span>
             <button
               onClick={onClose}
               className="p-1 -mr-1"
@@ -70,27 +70,70 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
 
           {/* Nav links */}
           <nav className="flex-1 overflow-y-auto px-gutter py-2" aria-label="Mobile navigation">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-0.5">
               <Link
                 to="/"
                 onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-3 hover:text-smoke transition-colors"
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors font-medium"
               >
                 Home
               </Link>
               <Link
-                to="/catalog"
+                to="/category/iphone"
                 onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-3 hover:text-smoke transition-colors"
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
               >
-                Catalog
+                iPhone
+              </Link>
+              <Link
+                to="/category/samsung"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                Samsung
+              </Link>
+              <Link
+                to="/category/accessories"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                Accessories
+              </Link>
+              <Link
+                to="/category/gadgets"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                Gadgets
+              </Link>
+              <Link
+                to="/category/others"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                Others
+              </Link>
+              <Link
+                to="/catalog?filter=new-arrivals"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                New Arrivals
+              </Link>
+              <Link
+                to="/catalog?filter=offers"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                Offers
               </Link>
               <Link
                 to="/customization"
                 onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-3 hover:text-smoke transition-colors"
+                className="font-sans text-body-md text-[#004ac6] py-2.5 hover:underline transition-colors font-medium flex items-center gap-1.5"
               >
-                Customize
+                <span className="material-symbols-outlined text-lg">edit_note</span>
+                Custom Cover Booking
               </Link>
             </div>
 
@@ -98,18 +141,11 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
 
             <div className="flex flex-col gap-1">
               <Link
-                to="/privacy-policy"
+                to="/admin"
                 onClick={onClose}
                 className="font-sans text-body-sm text-smoke py-2 hover:text-ink-black transition-colors"
               >
-                Privacy Policy
-              </Link>
-              <Link
-                to="/contact"
-                onClick={onClose}
-                className="font-sans text-body-sm text-smoke py-2 hover:text-ink-black transition-colors"
-              >
-                Contact Us
+                Admin Panel Login
               </Link>
             </div>
           </nav>
