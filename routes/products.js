@@ -316,6 +316,7 @@ router.post('/admin/products', verifyAdmin, upload.array('images[]'), async (req
       return res.status(400).json({ error: 'name, price, and category are required' });
     }
 
+    const initialLikes = body.likes_count !== undefined ? parseInt(body.likes_count || '0') : 0;
     const newProduct = {
       name,
       description: description || null,
@@ -327,7 +328,7 @@ router.post('/admin/products', verifyAdmin, upload.array('images[]'), async (req
       is_new_arrival: is_new_arrival === 'true' || is_new_arrival === true || is_new_arrival === '1' || is_new_arrival === 1,
       is_offer: is_offer === 'true' || is_offer === true || is_offer === '1' || is_offer === 1,
       is_out_of_stock: is_out_of_stock === 'true' || is_out_of_stock === true || is_out_of_stock === '1' || is_out_of_stock === 1,
-      likes_count: 0
+      likes_count: isNaN(initialLikes) ? 0 : initialLikes
     };
 
     const inserted = await db('products').insert(newProduct);
@@ -408,11 +409,12 @@ async function updateProductHandler(req, res) {
     const body = req.body || {};
     const updates = {};
 
-    const allowed = ['name', 'description', 'sku', 'price', 'category', 'stock', 'is_featured', 'is_new_arrival', 'is_offer', 'is_out_of_stock'];
+    const allowed = ['name', 'description', 'sku', 'price', 'category', 'stock', 'is_featured', 'is_new_arrival', 'is_offer', 'is_out_of_stock', 'likes_count'];
     allowed.forEach(field => {
       if (body[field] !== undefined) {
         if (field === 'price') updates.price = parseFloat(body.price);
         else if (field === 'stock') updates.stock = parseInt(body.stock || '0');
+        else if (field === 'likes_count') updates.likes_count = parseInt(body.likes_count || '0');
         else if (['is_featured', 'is_new_arrival', 'is_offer', 'is_out_of_stock'].includes(field)) {
           updates[field] = body[field] === 'true' || body[field] === true || body[field] === '1' || body[field] === 1;
         } else {

@@ -257,7 +257,7 @@ async function initDb() {
           is_new_arrival: true,
           is_offer: false,
           is_out_of_stock: false,
-          likes_count: 1420,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800',
           variants: [
             { color: 'Natural Titanium', color_code: '#bebaa7', model: 'iPhone 17 Pro Max 256GB', stock: 10 },
@@ -275,7 +275,7 @@ async function initDb() {
           is_new_arrival: true,
           is_offer: true,
           is_out_of_stock: false,
-          likes_count: 2150,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800',
           variants: [
             { color: 'Titanium Gray', color_code: '#708090', model: 'Galaxy S25 Ultra 512GB', stock: 8 },
@@ -293,7 +293,7 @@ async function initDb() {
           is_new_arrival: false,
           is_offer: true,
           is_out_of_stock: false,
-          likes_count: 3890,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=800',
           variants: [
             { color: 'Saddle Brown', color_code: '#8B4513', model: 'iPhone 16 Pro', stock: 25 },
@@ -311,7 +311,7 @@ async function initDb() {
           is_new_arrival: true,
           is_offer: false,
           is_out_of_stock: false,
-          likes_count: 1850,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800',
           variants: [
             { color: 'Glossy White', color_code: '#FFFFFF', model: 'Standard ANC', stock: 20 },
@@ -329,7 +329,7 @@ async function initDb() {
           is_new_arrival: true,
           is_offer: true,
           is_out_of_stock: false,
-          likes_count: 940,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800',
           variants: [
             { color: 'Pure White', color_code: '#F8F9FA', model: 'Dual Port 65W GaN', stock: 45 }
@@ -346,7 +346,7 @@ async function initDb() {
           is_new_arrival: true,
           is_offer: true,
           is_out_of_stock: false,
-          likes_count: 5120,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1541877944-ac82a091518a?w=800',
           variants: [
             { color: 'Glass Print', color_code: '#333333', model: 'iPhone 16 / 15 / Samsung S24', stock: 100 }
@@ -363,7 +363,7 @@ async function initDb() {
           is_new_arrival: false,
           is_offer: true,
           is_out_of_stock: false,
-          likes_count: 1250,
+          likes_count: 0,
           imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
           variants: [
             { color: 'Ocean Orange', color_code: '#FF6F00', model: '49mm Titanium Style', stock: 10 },

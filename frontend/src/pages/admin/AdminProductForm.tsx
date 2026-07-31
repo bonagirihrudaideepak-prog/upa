@@ -50,6 +50,7 @@ export default function AdminProductForm() {
   const [category, setCategory] = useState('');
   const [sku, setSku] = useState('');
   const [stock, setStock] = useState('1');
+  const [likesCount, setLikesCount] = useState('0');
   const [isFeatured, setIsFeatured] = useState(false);
   const [isNewArrival, setIsNewArrival] = useState(false);
   const [isOutOfStock, setIsOutOfStock] = useState(false);
@@ -83,6 +84,7 @@ export default function AdminProductForm() {
       setCategory(String(p.category));
       setSku(p.sku || '');
       setStock(String(p.stock));
+      setLikesCount(String(p.likes_count ?? 0));
       setIsFeatured(p.is_featured);
       setIsNewArrival(p.is_new_arrival);
       setIsOutOfStock(p.is_out_of_stock);
@@ -178,6 +180,7 @@ export default function AdminProductForm() {
     formData.append('category', category);
     formData.append('sku', sku);
     formData.append('stock', stock);
+    formData.append('likes_count', likesCount);
     formData.append('is_featured', String(isFeatured));
     formData.append('is_new_arrival', String(isNewArrival));
     formData.append('is_out_of_stock', String(isOutOfStock));
@@ -296,7 +299,7 @@ export default function AdminProductForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label htmlFor="psku" className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">SKU</label>
                   <input id="psku" type="text" value={sku} onChange={(e) => setSku(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]" />
@@ -304,6 +307,10 @@ export default function AdminProductForm() {
                 <div>
                   <label htmlFor="pstock" className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Stock Quantity</label>
                   <input id="pstock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]" />
+                </div>
+                <div>
+                  <label htmlFor="plikes" className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Initial Likes Count</label>
+                  <input id="plikes" type="number" min="0" value={likesCount} onChange={(e) => setLikesCount(e.target.value)} placeholder="0" className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]" />
                 </div>
               </div>
 
