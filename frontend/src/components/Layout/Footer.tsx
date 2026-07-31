@@ -2,19 +2,19 @@ import { Link } from 'react-router-dom';
 import { useApp } from '../../context/AppContext';
 
 export default function Footer() {
-  const { contactPhone, instagramUrl, locationMapUrl, storeName } = useApp();
+  const { instagramUrl, locationMapUrl, storeName } = useApp();
 
   return (
     <footer className="bg-cream-paper border-t border-ash mt-auto">
       <div className="max-w-container mx-auto px-gutter py-10 md:py-14">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
-          <div className="flex flex-col gap-3 md:col-span-1">
+          <div className="flex flex-col gap-3">
             <Link to="/" className="font-serif text-title-lg font-bold text-ink-black tracking-tight">
               {storeName}
             </Link>
             <p className="font-sans text-label-sm uppercase tracking-widest text-smoke">
-              Store Pickup Only • Premium Smartphones, Cases & Custom Covers
+              Store Pickup Only • Premium Smartphones, Cases &amp; Accessories
             </p>
           </div>
 
@@ -27,33 +27,9 @@ export default function Footer() {
             <Link to="/catalog" className="font-sans text-body-sm text-ink-black hover:text-smoke transition-colors">
               Catalog
             </Link>
-            <Link to="/customization" className="font-sans text-body-sm text-ink-black hover:text-smoke transition-colors">
-              Custom Covers
-            </Link>
           </div>
 
-          {/* Contact Info */}
-          <div className="flex flex-col gap-3">
-            <h3 className="font-sans text-label-sm uppercase tracking-widest text-smoke font-semibold">Call &amp; WhatsApp</h3>
-            <a
-              href={`tel:${contactPhone.replace(/\s+/g, '')}`}
-              className="flex items-center gap-2 font-sans text-body-sm text-ink-black hover:text-[#004ac6] transition-colors"
-            >
-              <span className="material-symbols-outlined text-body-sm text-smoke">call</span>
-              {contactPhone}
-            </a>
-            <a
-              href={`https://wa.me/${contactPhone.replace(/[^0-9]/g, '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 font-sans text-body-sm text-[#25D366] hover:underline transition-colors font-medium"
-            >
-              <span className="material-symbols-outlined text-body-sm">chat</span>
-              WhatsApp Quick Chat
-            </a>
-          </div>
-
-          {/* Social & Location */}
+          {/* Location & Instagram */}
           <div className="flex flex-col gap-3">
             <h3 className="font-sans text-label-sm uppercase tracking-widest text-smoke font-semibold">Store Location</h3>
             <a

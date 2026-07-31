@@ -315,26 +315,44 @@ router.post('/admin/products', verifyAdmin, upload.array('images[]'), async (req
       await db('product_variants').insert(variantInserts);
     }
 
-    // Handle Uploaded Files or JSON Images
+    // Handle Uploaded Files or Image URLs
+    const imageInserts = [];
     if (req.files && req.files.length > 0) {
-      const imageInserts = req.files.map((file, i) => ({
-        product_id: productId,
-        image_path: 'uploads/' + file.filename,
-        image_type: i === 0 ? 'main' : 'alt',
-        is_original_1_1: false,
-        is_original_3_4: false,
-        display_order: i
-      }));
-      await db('product_images').insert(imageInserts);
-    } else if (body.images && Array.isArray(body.images)) {
-      const imageInserts = body.images.map((img, i) => ({
-        product_id: productId,
-        image_path: img.image_path || img.existing || '',
-        image_type: img.image_type || (i === 0 ? 'main' : 'alt'),
-        is_original_1_1: Boolean(img.is_original_1_1),
-        is_original_3_4: Boolean(img.is_original_3_4),
-        display_order: img.display_order || i
-      }));
+      req.files.forEach((file, i) => {
+        imageInserts.push({
+          product_id: productId,
+          image_path: 'uploads/' + file.filename,
+          image_type: imageInserts.length === 0 ? 'main' : 'alt',
+          is_original_1_1: false,
+          is_original_3_4: false,
+          display_order: imageInserts.length
+        });
+      });
+    }
+
+    let urlInputs = body.image_urls || body.images || body.image_url;
+    if (urlInputs) {
+      if (typeof urlInputs === 'string') {
+        try { urlInputs = JSON.parse(urlInputs); } catch (e) { urlInputs = [urlInputs]; }
+      }
+      if (!Array.isArray(urlInputs)) urlInputs = [urlInputs];
+
+      urlInputs.forEach((img, i) => {
+        const pathStr = typeof img === 'string' ? img : (img.image_path || img.existing || img.url || '');
+        if (pathStr) {
+          imageInserts.push({
+            product_id: productId,
+            image_path: pathStr,
+            image_type: imageInserts.length === 0 ? 'main' : 'alt',
+            is_original_1_1: false,
+            is_original_3_4: false,
+            display_order: imageInserts.length
+          });
+        }
+      });
+    }
+
+    if (imageInserts.length > 0) {
       await db('product_images').insert(imageInserts);
     }
 
@@ -393,27 +411,44 @@ async function updateProductHandler(req, res) {
     }
 
     // Update images if files uploaded or passed
+    const imageInserts = [];
     if (req.files && req.files.length > 0) {
+      req.files.forEach((file, i) => {
+        imageInserts.push({
+          product_id: id,
+          image_path: 'uploads/' + file.filename,
+          image_type: imageInserts.length === 0 ? 'main' : 'alt',
+          is_original_1_1: false,
+          is_original_3_4: false,
+          display_order: imageInserts.length
+        });
+      });
+    }
+
+    let urlInputs = body.image_urls || body.images || body.image_url;
+    if (urlInputs) {
+      if (typeof urlInputs === 'string') {
+        try { urlInputs = JSON.parse(urlInputs); } catch (e) { urlInputs = [urlInputs]; }
+      }
+      if (!Array.isArray(urlInputs)) urlInputs = [urlInputs];
+
+      urlInputs.forEach((img, i) => {
+        const pathStr = typeof img === 'string' ? img : (img.image_path || img.existing || img.url || '');
+        if (pathStr) {
+          imageInserts.push({
+            product_id: id,
+            image_path: pathStr,
+            image_type: imageInserts.length === 0 ? 'main' : 'alt',
+            is_original_1_1: false,
+            is_original_3_4: false,
+            display_order: imageInserts.length
+          });
+        }
+      });
+    }
+
+    if (imageInserts.length > 0) {
       await db('product_images').where('product_id', id).del();
-      const imageInserts = req.files.map((file, i) => ({
-        product_id: id,
-        image_path: 'uploads/' + file.filename,
-        image_type: i === 0 ? 'main' : 'alt',
-        is_original_1_1: false,
-        is_original_3_4: false,
-        display_order: i
-      }));
-      await db('product_images').insert(imageInserts);
-    } else if (body.images !== undefined && Array.isArray(body.images)) {
-      await db('product_images').where('product_id', id).del();
-      const imageInserts = body.images.map((img, i) => ({
-        product_id: id,
-        image_path: img.image_path || img.existing || '',
-        image_type: img.image_type || (i === 0 ? 'main' : 'alt'),
-        is_original_1_1: Boolean(img.is_original_1_1),
-        is_original_3_4: Boolean(img.is_original_3_4),
-        display_order: img.display_order || i
-      }));
       await db('product_images').insert(imageInserts);
     }
 

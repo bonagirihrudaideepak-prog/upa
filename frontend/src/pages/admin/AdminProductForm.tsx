@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminMobileHeader from '../../components/Admin/AdminMobileHeader';
 import { api, getImageUrl } from '../../utils/api';
-import type { Product, Category, ProductVariant } from '../../types';
+import type { Category, ProductVariant } from '../../types';
 
 interface VariantEntry {
   color: string;
@@ -42,6 +42,7 @@ export default function AdminProductForm() {
 
   const [variants, setVariants] = useState<VariantEntry[]>([]);
   const [images, setImages] = useState<ImageEntry[]>([]);
+  const [urlInput, setUrlInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
@@ -63,7 +64,7 @@ export default function AdminProductForm() {
     if (res.success && res.data) {
       const p = res.data;
       setName(p.name);
-      setDescription(p.description);
+      setDescription(p.description || '');
       setPrice(String(p.price));
       setCategory(String(p.category));
       setSku(p.sku || '');
@@ -101,11 +102,25 @@ export default function AdminProductForm() {
       newImages.push({
         file,
         preview: URL.createObjectURL(file),
-        type: images.length === 0 ? 'main' : 'additional',
+        type: images.length === 0 && newImages.length === 0 ? 'main' : 'additional',
       });
     }
     setImages((prev) => [...prev, ...newImages]);
     if (fileInputRef.current) fileInputRef.current.value = '';
+  }
+
+  function addUrlImage() {
+    if (!urlInput.trim()) return;
+    const url = urlInput.trim();
+    setImages((prev) => [
+      ...prev,
+      {
+        preview: url,
+        existing: url,
+        type: prev.length === 0 ? 'main' : 'additional',
+      },
+    ]);
+    setUrlInput('');
   }
 
   function removeImage(index: number) {
@@ -163,6 +178,8 @@ export default function AdminProductForm() {
     images.forEach((img) => {
       if (img.file) {
         formData.append('images[]', img.file);
+      } else if (img.existing || img.preview) {
+        formData.append('image_urls[]', img.existing || img.preview);
       }
     });
 
@@ -261,13 +278,13 @@ export default function AdminProductForm() {
                   <select id="pcat" value={category} onChange={(e) => setCategory(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]">
                     <option value="">Select category</option>
                     {categories.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
+                      <option key={c.id} value={c.name}>{c.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="psku" className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">SKU</label>
                   <input id="psku" type="text" value={sku} onChange={(e) => setSku(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]" />
@@ -298,30 +315,30 @@ export default function AdminProductForm() {
             {/* Variants */}
             <div className="bg-white border border-ash rounded p-5 space-y-4">
               <div className="flex items-center justify-between">
-                <h2 className="font-serif text-title-md text-ink-black">Variants</h2>
-                <button type="button" onClick={addVariant} className="font-sans text-label-sm text-[#004ac6] hover:underline flex items-center gap-1">
+                <h2 className="font-serif text-title-md text-ink-black">Variants &amp; Color Swatches</h2>
+                <button type="button" onClick={addVariant} className="font-sans text-label-sm text-[#004ac6] hover:underline flex items-center gap-1 font-semibold">
                   <span className="material-symbols-outlined text-lg">add</span> Add Variant
                 </button>
               </div>
               {variants.length === 0 && (
-                <p className="font-sans text-body-sm text-smoke">No variants added.</p>
+                <p className="font-sans text-body-sm text-smoke">No variants added yet.</p>
               )}
               {variants.map((v, i) => (
-                <div key={i} className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end p-3 border border-ash rounded">
+                <div key={i} className="grid grid-cols-2 sm:grid-cols-5 gap-3 items-end p-3 border border-ash rounded bg-[#fbf8f6]">
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Color</label>
-                    <input type="text" value={v.color} onChange={(e) => updateVariant(i, 'color', e.target.value)} placeholder="e.g. Black" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
+                    <label className="font-sans text-caption text-smoke block mb-1">Color Name</label>
+                    <input type="text" value={v.color} onChange={(e) => updateVariant(i, 'color', e.target.value)} placeholder="e.g. Titanium Gray" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
                   </div>
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Code</label>
+                    <label className="font-sans text-caption text-smoke block mb-1">Color Code</label>
                     <div className="flex gap-2 items-center">
-                      <input type="color" value={v.color_code} onChange={(e) => updateVariant(i, 'color_code', e.target.value)} className="w-8 h-8 p-0 border border-ash rounded cursor-pointer" />
+                      <input type="color" value={v.color_code} onChange={(e) => updateVariant(i, 'color_code', e.target.value)} className="w-8 h-8 p-0 border border-ash rounded cursor-pointer shrink-0" />
                       <input type="text" value={v.color_code} onChange={(e) => updateVariant(i, 'color_code', e.target.value)} className="flex-1 px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
                     </div>
                   </div>
                   <div>
-                    <label className="font-sans text-caption text-smoke block mb-1">Model</label>
-                    <input type="text" value={v.model} onChange={(e) => updateVariant(i, 'model', e.target.value)} className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
+                    <label className="font-sans text-caption text-smoke block mb-1">Model / Specs</label>
+                    <input type="text" value={v.model} onChange={(e) => updateVariant(i, 'model', e.target.value)} placeholder="e.g. 256GB" className="w-full px-2.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]" />
                   </div>
                   <div>
                     <label className="font-sans text-caption text-smoke block mb-1">Stock</label>
@@ -337,37 +354,58 @@ export default function AdminProductForm() {
             {/* Images */}
             <div className="bg-white border border-ash rounded p-5 space-y-4">
               <div>
-                <h2 className="font-serif text-title-md text-ink-black mb-1">Images</h2>
-                <p className="font-sans text-caption text-smoke">Upload 1:1 or 3:4 ratio images</p>
+                <h2 className="font-serif text-title-md text-ink-black mb-1">Product Images</h2>
+                <p className="font-sans text-caption text-smoke">Upload files from your device OR paste image Web URLs</p>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {/* Paste URL Input */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={urlInput}
+                  onChange={(e) => setUrlInput(e.target.value)}
+                  placeholder="Paste image web URL (e.g. https://images.unsplash.com/...)"
+                  className="flex-1 px-3.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]"
+                />
+                <button
+                  type="button"
+                  onClick={addUrlImage}
+                  className="px-4 py-2 bg-ink-black text-white font-sans text-label-sm rounded hover:bg-smoke transition-colors uppercase tracking-wider"
+                >
+                  Add URL
+                </button>
+              </div>
+
+              {/* Image Previews & Upload Box */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
                 {images.map((img, i) => (
                   <div key={i} className="relative aspect-square border border-ash rounded overflow-hidden bg-ash/20 group">
                     <img src={img.preview} alt="" className="w-full h-full object-cover" />
                     <div className="absolute top-1 left-1">
-                      <span className="font-sans text-[10px] bg-white/90 text-ink-black px-2 py-0.5 rounded">
-                        {img.type === 'main' ? '1:1' : '3:4'}
+                      <span className="font-sans text-[10px] bg-white/90 text-ink-black px-2 py-0.5 rounded font-bold shadow-sm">
+                        {i === 0 ? 'MAIN' : 'ALT'}
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => removeImage(i)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute top-1 right-1 w-6 h-6 bg-black/70 text-white rounded-full flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity"
                     >
                       <span className="material-symbols-outlined text-sm">close</span>
                     </button>
                   </div>
                 ))}
+
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square border-2 border-dashed border-ash rounded flex flex-col items-center justify-center gap-1 text-smoke hover:border-[#004ac6] hover:text-[#004ac6] transition-colors"
+                  className="aspect-square border-2 border-dashed border-ash rounded flex flex-col items-center justify-center gap-1.5 text-smoke hover:border-[#004ac6] hover:text-[#004ac6] transition-colors bg-[#fbf8f6]"
                 >
-                  <span className="material-symbols-outlined text-2xl">add_photo_alternate</span>
-                  <span className="font-sans text-caption">Upload</span>
+                  <span className="material-symbols-outlined text-3xl">cloud_upload</span>
+                  <span className="font-sans text-caption font-semibold">Browse File</span>
                 </button>
               </div>
+
               <input
                 ref={fileInputRef}
                 type="file"
@@ -379,13 +417,13 @@ export default function AdminProductForm() {
             </div>
 
             {/* Submit */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 pt-4">
               <button
                 type="submit"
                 disabled={saving}
-                className="px-6 py-3 bg-[#004ac6] text-white font-sans text-label-sm uppercase tracking-widest rounded hover:bg-[#003b9e] disabled:opacity-50 transition-colors"
+                className="px-8 py-3 bg-[#004ac6] text-white font-sans text-label-sm uppercase tracking-widest rounded hover:bg-[#003b9e] disabled:opacity-50 transition-colors shadow-md"
               >
-                {saving ? 'Saving...' : isEdit ? 'Update Product' : 'Create Product'}
+                {saving ? 'Saving Product...' : isEdit ? 'Update Product' : 'Create Product'}
               </button>
               <button
                 type="button"
