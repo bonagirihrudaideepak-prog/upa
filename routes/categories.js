@@ -23,7 +23,7 @@ router.get('/categories', async (req, res) => {
     res.json(categories.map(formatCategory));
   } catch (err) {
     console.error('Error fetching categories:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -36,7 +36,7 @@ router.get('/admin/categories', verifyAdmin, async (req, res) => {
     res.json(categories.map(formatCategory));
   } catch (err) {
     console.error('Error fetching admin categories:', err);
-    res.status(500).json({ error: 'Server error', details: err.message });
+    res.status(500).json({ error: 'Server error' });
   }
 });
 
@@ -62,7 +62,7 @@ router.post('/admin/categories', verifyAdmin, async (req, res) => {
     res.status(201).json(formatCategory(created));
   } catch (err) {
     console.error('Error creating category:', err);
-    res.status(500).json({ error: 'Failed to create category', details: err.message });
+    res.status(500).json({ error: 'Failed to create category' });
   }
 });
 
@@ -89,7 +89,7 @@ router.put('/admin/categories/:id', verifyAdmin, async (req, res) => {
     res.json(formatCategory(updated));
   } catch (err) {
     console.error('Error updating category:', err);
-    res.status(500).json({ error: 'Failed to update category', details: err.message });
+    res.status(500).json({ error: 'Failed to update category' });
   }
 });
 
@@ -104,7 +104,7 @@ router.delete('/admin/categories/:id', verifyAdmin, async (req, res) => {
     res.json({ message: 'Category deleted successfully' });
   } catch (err) {
     console.error('Error deleting category:', err);
-    res.status(500).json({ error: 'Failed to delete category', details: err.message });
+    res.status(500).json({ error: 'Failed to delete category' });
   }
 });
 

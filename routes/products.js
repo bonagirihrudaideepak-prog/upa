@@ -6,6 +6,20 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+// Simple in-memory rate limiter for likes (per IP + product)
+const likeRateMap = new Map();
+const LIKE_COOLDOWN_MS = 5000; // 5 seconds per product per IP
+
+function sanitizeHtml(str) {
+  if (!str) return str;
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const uploadDir = path.join(__dirname, '..', 'uploads');
@@ -184,12 +198,29 @@ router.get('/products/:id', async (req, res) => {
   }
 });
 
-// 7. Like Product
+// 7. Like Product (rate-limited)
 router.post('/products/:id/like', async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
       return res.status(400).json({ error: 'Invalid product ID' });
+    }
+
+    // Rate limit: 1 like per 5 seconds per IP per product
+    const ip = req.ip || req.connection.remoteAddress || 'unknown';
+    const rateKey = `${ip}:${id}`;
+    const lastLike = likeRateMap.get(rateKey);
+    if (lastLike && Date.now() - lastLike < LIKE_COOLDOWN_MS) {
+      return res.status(429).json({ error: 'Too many requests. Please wait a few seconds.' });
+    }
+    likeRateMap.set(rateKey, Date.now());
+
+    // Periodic cleanup of rate limiter (prevent memory leak)
+    if (likeRateMap.size > 10000) {
+      const now = Date.now();
+      for (const [key, ts] of likeRateMap) {
+        if (now - ts > 60000) likeRateMap.delete(key);
+      }
     }
 
     await db('products').where('id', id).increment('likes_count', 1);

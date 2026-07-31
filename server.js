@@ -23,6 +23,19 @@ app.use(cors());
 // Gzip compression — 70-80% bandwidth savings
 app.use(compression());
 
+// Security headers
+app.disable('x-powered-by');
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  }
+  next();
+});
+
 // Enable ETag for conditional responses (304 Not Modified)
 app.set('etag', 'strong');
 

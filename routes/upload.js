@@ -48,9 +48,15 @@ function handleDelete(req, res) {
     return res.status(400).json({ error: 'File path is required' });
   }
 
-  // Clean relative path to avoid path traversal
-  const cleanPath = path.normalize(fileRelPath).replace(/^(\.\.[\/\\])+/, '');
-  const fullPath = path.join(__dirname, '..', cleanPath);
+  // Strict path traversal protection: ensure path stays within uploads/
+  const cleanPath = path.normalize(fileRelPath).replace(/^(\.\.\/|\.\.\\)+/g, '');
+  const uploadsDir = path.join(__dirname, '..', 'uploads');
+  const fullPath = path.resolve(path.join(__dirname, '..', cleanPath));
+
+  // SECURITY: Verify resolved path is inside uploads directory
+  if (!fullPath.startsWith(uploadsDir)) {
+    return res.status(403).json({ error: 'Access denied: path outside uploads directory' });
+  }
 
   if (fs.existsSync(fullPath)) {
     fs.unlinkSync(fullPath);
@@ -60,11 +66,11 @@ function handleDelete(req, res) {
   }
 }
 
-// Support both /api/upload and /api/admin/upload for compatibility
-router.post('/upload', upload.single('file'), handleUpload);
+// All upload/delete routes require admin authentication
+router.post('/upload', verifyAdmin, upload.single('file'), handleUpload);
 router.post('/admin/upload', verifyAdmin, upload.single('file'), handleUpload);
 
-router.delete('/upload', handleDelete);
+router.delete('/upload', verifyAdmin, handleDelete);
 router.delete('/admin/upload', verifyAdmin, handleDelete);
 
 module.exports = router;

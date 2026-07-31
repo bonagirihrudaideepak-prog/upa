@@ -2,6 +2,16 @@ const express = require('express');
 const router = express.Router();
 const { db } = require('../db');
 
+function sanitizeHtml(str) {
+  if (!str) return str;
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
 // Add a review
 router.post('/reviews', async (req, res) => {
   try {
@@ -9,6 +19,14 @@ router.post('/reviews', async (req, res) => {
 
     if (!product_id || !user_name || !rating) {
       return res.status(400).json({ error: 'product_id, user_name, and rating are required' });
+    }
+
+    // Input length limits + XSS sanitization
+    const cleanName = sanitizeHtml(String(user_name).trim().substring(0, 100));
+    const cleanComment = comment ? sanitizeHtml(String(comment).trim().substring(0, 2000)) : null;
+
+    if (!cleanName) {
+      return res.status(400).json({ error: 'user_name cannot be empty' });
     }
 
     const ratingNum = parseInt(rating);
@@ -23,9 +41,9 @@ router.post('/reviews', async (req, res) => {
 
     await db('reviews').insert({
       product_id: parseInt(product_id),
-      user_name,
+      user_name: cleanName,
       rating: ratingNum,
-      comment: comment || null
+      comment: cleanComment
     });
 
     res.status(201).json({ message: 'Review added successfully' });
