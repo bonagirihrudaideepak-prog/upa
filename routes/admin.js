@@ -97,8 +97,11 @@ router.get('/admin/dashboard', verifyAdmin, async (req, res) => {
     const totalReviewsRow = await db('reviews').count('id as count').first();
     const totalReviews = Number(totalReviewsRow?.count || 0);
 
-    const totalOffersRow = await db('offers').count('id as count').first();
-    const totalOffers = Number(totalOffersRow?.count || 0);
+    const activeOffersRow = await db('offers').where('is_active', true).orWhere('is_active', 1).count('id as count').first();
+    const activeOffers = Number(activeOffersRow?.count || 0);
+
+    const outOfStockRow = await db('products').where('is_out_of_stock', true).orWhere('is_out_of_stock', 1).count('id as count').first();
+    const outOfStock = Number(outOfStockRow?.count || 0);
 
     const totalLikesRow = await db('products').sum('likes_count as total').first();
     const totalLikes = Number(totalLikesRow?.total || 0);
@@ -106,40 +109,29 @@ router.get('/admin/dashboard', verifyAdmin, async (req, res) => {
     const totalInventoryRow = await db('products').sum('stock as total').first();
     const totalInventory = Number(totalInventoryRow?.total || 0);
 
-    const featuredCountRow = await db('products').where('is_featured', true).orWhere('is_featured', 1).count('id as count').first();
-    const featuredCount = Number(featuredCountRow?.count || 0);
-
-    const newArrivalsRow = await db('products').where('is_new_arrival', true).orWhere('is_new_arrival', 1).count('id as count').first();
-    const newArrivals = Number(newArrivalsRow?.count || 0);
-
     const recentProductsRaw = await db('products')
-      .select('id', 'name', 'price', 'stock', 'created_at')
+      .select('id', 'name', 'price', 'stock', 'category', 'is_out_of_stock', 'created_at')
       .orderBy('created_at', 'desc')
       .limit(5);
+
+    const productIds = recentProductsRaw.map(p => p.id);
+    let imageMap = {};
+    if (productIds.length > 0) {
+      const imgs = await db('product_images').whereIn('product_id', productIds);
+      imgs.forEach(img => {
+        if (!imageMap[img.product_id]) imageMap[img.product_id] = [];
+        imageMap[img.product_id].push(img);
+      });
+    }
 
     const recentProducts = recentProductsRaw.map(p => ({
       ...p,
       id: Number(p.id),
       price: Number(p.price),
-      stock: Number(p.stock || 0)
+      stock: Number(p.stock || 0),
+      is_out_of_stock: Boolean(p.is_out_of_stock),
+      images: imageMap[p.id] || []
     }));
-
-    let recentReviews = [];
-    try {
-      const reviewsRaw = await db('reviews as r')
-        .join('products as p', 'r.product_id', 'p.id')
-        .select('r.id', 'r.user_name', 'r.rating', 'r.created_at', 'p.name as product_name')
-        .orderBy('r.created_at', 'desc')
-        .limit(5);
-
-      recentReviews = reviewsRaw.map(r => ({
-        ...r,
-        id: Number(r.id),
-        rating: Number(r.rating)
-      }));
-    } catch (e) {
-      recentReviews = [];
-    }
 
     const topProductsRaw = await db('products')
       .select('id', 'name', 'likes_count')
@@ -152,20 +144,17 @@ router.get('/admin/dashboard', verifyAdmin, async (req, res) => {
       likes_count: Number(p.likes_count || 0)
     }));
 
+    // Flat response matching DashboardStats type
     res.json({
-      stats: {
-        total_products: totalProducts,
-        total_categories: totalCategories,
-        total_reviews: totalReviews,
-        total_offers: totalOffers,
-        total_likes: totalLikes,
-        total_inventory: totalInventory,
-        featured_count: featuredCount,
-        new_arrivals: newArrivals,
-      },
+      total_products: totalProducts,
+      total_categories: totalCategories,
+      total_reviews: totalReviews,
+      active_offers: activeOffers,
+      out_of_stock: outOfStock,
+      total_likes: totalLikes,
+      total_inventory: totalInventory,
       recent_products: recentProducts,
-      recent_reviews: recentReviews,
-      top_liked_products: topProducts,
+      top_liked: topProducts,
     });
   } catch (err) {
     console.error('Error fetching admin dashboard stats:', err);
