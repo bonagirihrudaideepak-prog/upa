@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 
@@ -19,16 +20,26 @@ const PORT = process.env.PORT || 10000;
 // Enable CORS
 app.use(cors());
 
+// Gzip compression — 70-80% bandwidth savings
+app.use(compression());
+
+// Enable ETag for conditional responses (304 Not Modified)
+app.set('etag', 'strong');
+
 // Body Parsers
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // Serve Uploads Directory
 const uploadsDir = path.join(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(uploadsDir, {
+  maxAge: '7d',
+  immutable: true,
+  etag: true
+}));
 
 // API Routes
 app.use('/api', productsRouter);
@@ -46,7 +57,11 @@ app.get('/api/health', (req, res) => {
 // Serve Static Frontend Assets (Production Build)
 const frontendDist = path.join(__dirname, 'frontend', 'dist');
 if (fs.existsSync(frontendDist)) {
-  app.use(express.static(frontendDist));
+  app.use(express.static(frontendDist, {
+    maxAge: '30d',
+    immutable: true,
+    etag: true
+  }));
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/uploads')) {
       res.sendFile(path.join(frontendDist, 'index.html'));

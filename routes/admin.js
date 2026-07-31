@@ -2,17 +2,21 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { db, formatProduct } = require('../db');
+const { db, formatProduct, apiCache } = require('../db');
 const { JWT_SECRET, verifyAdmin } = require('../middleware/auth');
 
-// Public: Get Site Settings
+// Public: Get Site Settings (HOT PATH — cached 30s)
 router.get('/settings', async (req, res) => {
   try {
+    const cached = apiCache.get('settings');
+    if (cached) return res.json(cached);
+
     const rows = await db('site_settings').select('setting_key', 'setting_value');
     const settings = {};
     rows.forEach(r => {
       settings[r.setting_key] = r.setting_value;
     });
+    apiCache.set('settings', settings);
     res.json(settings);
   } catch (err) {
     console.error('Error fetching site settings:', err);
@@ -39,6 +43,10 @@ router.post('/admin/settings', verifyAdmin, async (req, res) => {
     const rows = await db('site_settings').select('setting_key', 'setting_value');
     const settings = {};
     rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+
+    // Invalidate settings cache
+    apiCache.invalidate('settings');
+    apiCache.set('settings', settings);
 
     res.json({ message: 'Settings updated successfully', settings });
   } catch (err) {

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import type { Product, ProductVariant, CartItem } from '../types';
 import { api } from '../utils/api';
 
@@ -8,22 +8,33 @@ interface Toast {
   type: 'success' | 'error' | 'info';
 }
 
-interface AppState {
-  cart: CartItem[];
-  whatsappNumber: string;
-  contactPhone: string;
-  instagramUrl: string;
-  locationMapUrl: string;
+interface SiteSettings {
   storeName: string;
   marqueeText: string;
+  contactPhone: string;
+  whatsappNumber: string;
+  instagramUrl: string;
+  locationMapUrl: string;
   heroTitle: string;
   heroSubtitle: string;
+}
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  storeName: 'Upanishad Mobile Store',
+  marqueeText: '⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡',
+  contactPhone: '+91 96667 31286',
+  whatsappNumber: '+919666731286',
+  instagramUrl: 'https://www.instagram.com/upanishadmobiles/',
+  locationMapUrl: 'https://maps.app.goo.gl/JRej6So64iYYm7ia6',
+  heroTitle: 'Modern Tech, Curated for You',
+  heroSubtitle: 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories',
+};
+
+interface AppContextValue extends SiteSettings {
+  cart: CartItem[];
   isAdmin: boolean;
   toasts: Toast[];
   loading: boolean;
-}
-
-interface AppContextValue extends AppState {
   addToCart: (product: Product, variant?: ProductVariant) => void;
   removeFromCart: (productId: number) => void;
   clearCart: () => void;
@@ -42,29 +53,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Dynamic Site Settings
-  const [storeName, setStoreName] = useState('Upanishad Mobile Store');
-  const [marqueeText, setMarqueeText] = useState('⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡');
-  const [contactPhone, setContactPhone] = useState('+91 96667 31286');
-  const [whatsappNumber, setWhatsappNumber] = useState('+919666731286');
-  const [instagramUrl, setInstagramUrl] = useState('https://www.instagram.com/upanishadmobiles/');
-  const [locationMapUrl, setLocationMapUrl] = useState('https://maps.app.goo.gl/JRej6So64iYYm7ia6');
-  const [heroTitle, setHeroTitle] = useState('Modern Tech, Curated for You');
-  const [heroSubtitle, setHeroSubtitle] = useState('Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories');
+  // Single state object for all settings → one re-render instead of 8
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
 
   const loadSettings = useCallback(async () => {
     try {
       const res = await api.getSettings();
       if (res.success && res.data) {
         const s = res.data;
-        if (s.store_name) setStoreName(s.store_name);
-        if (s.marquee_text) setMarqueeText(s.marquee_text);
-        if (s.contact_phone) setContactPhone(s.contact_phone);
-        if (s.whatsapp_number) setWhatsappNumber(s.whatsapp_number);
-        if (s.instagram_url) setInstagramUrl(s.instagram_url);
-        if (s.location_map_url) setLocationMapUrl(s.location_map_url);
-        if (s.hero_title) setHeroTitle(s.hero_title);
-        if (s.hero_subtitle) setHeroSubtitle(s.hero_subtitle);
+        setSettings(prev => ({
+          storeName: s.store_name || prev.storeName,
+          marqueeText: s.marquee_text || prev.marqueeText,
+          contactPhone: s.contact_phone || prev.contactPhone,
+          whatsappNumber: s.whatsapp_number || prev.whatsappNumber,
+          instagramUrl: s.instagram_url || prev.instagramUrl,
+          locationMapUrl: s.location_map_url || prev.locationMapUrl,
+          heroTitle: s.hero_title || prev.heroTitle,
+          heroSubtitle: s.hero_subtitle || prev.heroSubtitle,
+        }));
       }
     } catch (e) {
       console.error('Failed to load dynamic settings:', e);
@@ -107,31 +113,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  // Memoize context value to prevent unnecessary child re-renders
+  const value = useMemo<AppContextValue>(() => ({
+    cart,
+    ...settings,
+    isAdmin,
+    toasts,
+    loading,
+    addToCart,
+    removeFromCart,
+    clearCart,
+    setAdmin,
+    showToast,
+    dismissToast,
+    setLoading,
+    reloadSettings: loadSettings,
+  }), [cart, settings, isAdmin, toasts, loading, addToCart, removeFromCart, clearCart, showToast, dismissToast, loadSettings]);
+
   return (
-    <AppContext.Provider
-      value={{
-        cart,
-        whatsappNumber,
-        contactPhone,
-        instagramUrl,
-        locationMapUrl,
-        storeName,
-        marqueeText,
-        heroTitle,
-        heroSubtitle,
-        isAdmin,
-        toasts,
-        loading,
-        addToCart,
-        removeFromCart,
-        clearCart,
-        setAdmin,
-        showToast,
-        dismissToast,
-        setLoading,
-        reloadSettings: loadSettings,
-      }}
-    >
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );

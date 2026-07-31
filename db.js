@@ -3,6 +3,35 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 
+// ===== In-memory TTL Cache =====
+class SimpleCache {
+  constructor(ttlMs = 30000) {
+    this.cache = new Map();
+    this.ttl = ttlMs;
+  }
+  get(key) {
+    const entry = this.cache.get(key);
+    if (!entry) return undefined;
+    if (Date.now() - entry.ts > this.ttl) {
+      this.cache.delete(key);
+      return undefined;
+    }
+    return entry.data;
+  }
+  set(key, data) {
+    this.cache.set(key, { data, ts: Date.now() });
+  }
+  invalidate(prefix) {
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) this.cache.delete(key);
+    }
+  }
+  clear() {
+    this.cache.clear();
+  }
+}
+const apiCache = new SimpleCache(30000); // 30s TTL
+
 function getDbConfig() {
   const dbUrl = process.env.DATABASE_URL;
   const dbHost = process.env.DB_HOST;
@@ -452,18 +481,31 @@ async function attachImagesAndVariants(products) {
   if (!products || products.length === 0) return [];
   const ids = products.map(p => p.id);
 
+  // Fetch ALL images (not just main) — needed for product cards and detail
   const images = await db('product_images')
     .whereIn('product_id', ids)
-    .andWhere('image_type', 'main');
+    .orderBy('display_order', 'asc');
 
   const variants = await db('product_variants')
     .whereIn('product_id', ids);
 
   const imageMap = {};
+  const fullImageMap = {};
   images.forEach(img => {
-    if (!imageMap[img.product_id]) {
+    // main_image shortcut (first main image found)
+    if (!imageMap[img.product_id] && img.image_type === 'main') {
       imageMap[img.product_id] = img.image_path;
     }
+    // full images array
+    if (!fullImageMap[img.product_id]) fullImageMap[img.product_id] = [];
+    fullImageMap[img.product_id].push({
+      ...img,
+      id: Number(img.id),
+      product_id: Number(img.product_id),
+      is_original_1_1: Boolean(img.is_original_1_1),
+      is_original_3_4: Boolean(img.is_original_3_4),
+      display_order: Number(img.display_order || 0)
+    });
   });
 
   const variantMap = {};
@@ -479,7 +521,8 @@ async function attachImagesAndVariants(products) {
 
   return products.map(p => {
     const formatted = formatProduct(p);
-    formatted.main_image = imageMap[p.id] || null;
+    formatted.main_image = imageMap[p.id] || (fullImageMap[p.id]?.[0]?.image_path ?? null);
+    formatted.images = fullImageMap[p.id] || [];
     formatted.variants = variantMap[p.id] || [];
     return formatted;
   });
@@ -491,5 +534,6 @@ module.exports = {
   formatProduct,
   formatCategory,
   formatOffer,
-  attachImagesAndVariants
+  attachImagesAndVariants,
+  apiCache
 };
