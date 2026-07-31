@@ -9,11 +9,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/admin/dashboard', icon: 'grid_view' },
-  { label: 'Products', path: '/admin/products', icon: 'auto_awesome' },
-  { label: 'Banners', path: '/admin/offers', icon: 'trending_up' },
-  { label: 'Offers', path: '/admin/offers', icon: 'local_offer' },
+  { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
+  { label: 'Banners & Offers', path: '/admin/offers', icon: 'campaign' },
   { label: 'Categories', path: '/admin/categories', icon: 'category' },
-  { label: 'Settings', path: '/admin/settings', icon: 'settings' },
+  { label: 'Website Settings', path: '/admin/settings', icon: 'tune' },
 ];
 
 export default function AdminSidebar() {

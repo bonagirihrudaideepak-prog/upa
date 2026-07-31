@@ -15,13 +15,14 @@ export default function AdminMobileHeader({ onMenuToggle }: Props) {
         <span className="material-symbols-outlined text-ink-black text-2xl">menu</span>
       </button>
 
-      <Link to="/admin/dashboard" className="font-serif text-headline-sm text-ink-black tracking-tight">
-        Deepak Electronics
+      <Link to="/admin/dashboard" className="font-serif text-title-md font-bold text-ink-black tracking-tight">
+        Upanishad Mobile Store
       </Link>
 
-      <button className="p-1 -mr-1" aria-label="Cart">
-        <span className="material-symbols-outlined text-ink-black text-2xl">shopping_bag</span>
-      </button>
+      <Link to="/admin/settings" className="p-1 -mr-1" aria-label="Settings">
+        <span className="material-symbols-outlined text-ink-black text-2xl">settings</span>
+      </Link>
     </header>
   );
 }
+
