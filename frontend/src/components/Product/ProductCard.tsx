@@ -15,11 +15,18 @@ function formatLikes(count: number): string {
 }
 
 export default function ProductCard({ product, onLike, onAddToCart, onClick }: ProductCardProps) {
-  const imageUrl = product.images?.[0] ? getImageUrl(product.images[0].image_path) : '';
+  const imageUrl = product.images?.[0] ? getImageUrl(product.images[0].image_path) : (product.main_image ? getImageUrl(product.main_image) : '');
+
+  const colorVariants = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
+    if (v.color_code && !acc.find((c) => c.code === v.color_code)) {
+      acc.push({ color: v.color, code: v.color_code });
+    }
+    return acc;
+  }, []) ?? [];
 
   return (
     <div
-      className="group relative bg-white border border-ash rounded overflow-hidden hover:border-ink-black transition-colors cursor-pointer"
+      className="group relative bg-white border border-ash rounded-xl overflow-hidden hover:border-ink-black hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
       onClick={() => onClick(product)}
       role="button"
       tabIndex={0}
@@ -31,12 +38,13 @@ export default function ProductCard({ product, onLike, onAddToCart, onClick }: P
       }}
       aria-label={product.name}
     >
-      <div className="aspect-square relative overflow-hidden bg-cream-paper p-4">
+      {/* Card Header Badges */}
+      <div className="aspect-square relative overflow-hidden bg-[#fbf8f6] p-4 flex items-center justify-center">
         {imageUrl ? (
           <img
             src={imageUrl}
             alt={product.name}
-            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-contain mix-blend-multiply group-hover:scale-108 transition-transform duration-500 ease-out"
             loading="lazy"
           />
         ) : (
@@ -44,41 +52,92 @@ export default function ProductCard({ product, onLike, onAddToCart, onClick }: P
             <span className="material-symbols-outlined text-4xl">image</span>
           </div>
         )}
-        {product.is_out_of_stock && (
-          <div className="absolute top-2 left-2 bg-smoke text-white font-label-sm text-label-sm px-2 py-0.5 rounded">
-            Out of Stock
-          </div>
-        )}
-      </div>
-      <div className="p-4 flex flex-col gap-2">
-        <h3 className="font-label-md text-label-md text-ink-black truncate">{product.name}</h3>
-        <p className="font-body-md text-body-md text-ink-black font-bold">₹{product.price}</p>
-        <div className="flex justify-between items-center mt-2">
+
+        {/* Badges Container */}
+        <div className="absolute top-2.5 left-2.5 flex flex-col gap-1 z-10">
           {product.is_out_of_stock ? (
-            <span className="font-label-sm text-label-sm text-smoke">Out of Stock</span>
+            <span className="bg-red-600 text-white font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+              Out of Stock
+            </span>
           ) : (
+            <>
+              {product.is_new_arrival && (
+                <span className="bg-butter-highlight text-ink-black font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded border border-ash/40 shadow-sm">
+                  NEW
+                </span>
+              )}
+              {product.is_offer && (
+                <span className="bg-ink-black text-white font-sans text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded shadow-sm">
+                  OFFER
+                </span>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Quick View Hover overlay */}
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+          <span className="bg-white text-ink-black font-sans text-label-sm uppercase tracking-widest px-3 py-1.5 rounded shadow-md border border-ash transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+            Quick View
+          </span>
+        </div>
+      </div>
+
+      {/* Card Content */}
+      <div className="p-4 flex flex-col gap-2 flex-1 justify-between bg-white">
+        <div>
+          <div className="flex items-center justify-between gap-2 mb-1">
+            <span className="font-sans text-[11px] uppercase tracking-wider text-smoke font-medium">{product.category}</span>
+            {colorVariants.length > 0 && (
+              <div className="flex gap-1">
+                {colorVariants.slice(0, 4).map((c, i) => (
+                  <span
+                    key={i}
+                    className="w-2.5 h-2.5 rounded-full border border-ash inline-block"
+                    style={{ backgroundColor: c.code }}
+                    title={c.color}
+                  />
+                ))}
+                {colorVariants.length > 4 && (
+                  <span className="text-[9px] text-smoke font-bold">+{colorVariants.length - 4}</span>
+                )}
+              </div>
+            )}
+          </div>
+          <h3 className="font-sans text-body-sm font-semibold text-ink-black line-clamp-1 group-hover:text-[#004ac6] transition-colors">
+            {product.name}
+          </h3>
+        </div>
+
+        <div className="pt-2 border-t border-ash/40 flex items-center justify-between">
+          <p className="font-sans text-body-md font-bold text-ink-black">₹{product.price.toLocaleString('en-IN')}</p>
+
+          <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                onAddToCart(product);
+                onLike(product.id);
               }}
-              className="bg-ink-black text-white font-label-sm text-label-sm px-4 py-1.5 rounded uppercase hover:bg-smoke transition-colors"
-              aria-label="Add to cart"
+              className="flex items-center gap-1 text-smoke hover:text-red-500 transition-colors p-1"
+              aria-label={`Like ${product.name}`}
             >
-              Add
+              <span className="material-symbols-outlined text-[18px]">favorite</span>
+              <span className="font-sans text-caption font-semibold">{formatLikes(product.likes_count)}</span>
             </button>
-          )}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onLike(product.id);
-            }}
-            className="flex items-center gap-1 text-smoke hover:text-red-500 transition-colors"
-            aria-label={`Like ${product.name}`}
-          >
-            <span className="material-symbols-outlined text-[16px]">favorite</span>
-            <span className="font-label-sm text-label-sm">{formatLikes(product.likes_count)}</span>
-          </button>
+
+            {!product.is_out_of_stock && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToCart(product);
+                }}
+                className="bg-ink-black text-white font-sans text-label-sm uppercase tracking-wider px-3.5 py-1.5 rounded hover:bg-[#004ac6] transition-colors shadow-sm"
+                aria-label="Add to cart"
+              >
+                Order
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

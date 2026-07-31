@@ -31,6 +31,7 @@ export interface Product {
   likes_count: number;
   sku: string;
   created_at: string;
+  main_image?: string | null;
   images: ProductImage[];
   variants: ProductVariant[];
 }

@@ -81,7 +81,7 @@ export default function CustomizationPage() {
     <div className="min-h-screen flex flex-col bg-cream-paper">
       <Header />
 
-      <main className="flex-1 w-full pt-20 md:pt-24 pb-12">
+      <main className="flex-1 w-full pt-28 md:pt-32 pb-12">
         <div className="max-w-container mx-auto px-gutter">
           <div className="max-w-lg mx-auto">
             {/* Page Title */}
