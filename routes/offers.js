@@ -1,16 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { db, formatOffer } = require('../db');
+const { db, formatOffer, apiCache } = require('../db');
 const { verifyAdmin } = require('../middleware/auth');
 
 // Public: Get all active offers
 router.get('/offers', async (req, res) => {
   try {
+    const cached = apiCache ? apiCache.get('offers') : null;
+    if (cached) return res.json(cached);
+
     const offers = await db('offers')
       .where('is_active', true)
       .orWhere('is_active', 1)
       .orderBy('created_at', 'desc');
-    res.json(offers.map(formatOffer));
+    const result = offers.map(formatOffer);
+    if (apiCache) apiCache.set('offers', result);
+    res.json(result);
   } catch (err) {
     console.error('Error fetching offers:', err);
     res.status(500).json({ error: 'Server error' });
@@ -45,6 +50,8 @@ router.post('/admin/offers', verifyAdmin, async (req, res) => {
     const inserted = await db('offers').insert(newOffer);
     const id = Array.isArray(inserted) ? inserted[0] : inserted;
 
+    if (apiCache) apiCache.invalidate('offers');
+
     res.status(201).json({ id, message: 'Offer created' });
   } catch (err) {
     console.error('Error creating offer:', err);
@@ -71,6 +78,7 @@ router.put('/admin/offers/:id', verifyAdmin, async (req, res) => {
     }
 
     await db('offers').where('id', id).update(updates);
+    if (apiCache) apiCache.invalidate('offers');
     res.json({ message: 'Offer updated' });
   } catch (err) {
     console.error('Error updating offer:', err);
@@ -86,6 +94,7 @@ router.delete('/admin/offers/:id', verifyAdmin, async (req, res) => {
     if (!existing) return res.status(404).json({ error: 'Offer not found' });
 
     await db('offers').where('id', id).del();
+    if (apiCache) apiCache.invalidate('offers');
     res.json({ message: 'Offer deleted' });
   } catch (err) {
     console.error('Error deleting offer:', err);
@@ -94,3 +103,4 @@ router.delete('/admin/offers/:id', verifyAdmin, async (req, res) => {
 });
 
 module.exports = router;
+
