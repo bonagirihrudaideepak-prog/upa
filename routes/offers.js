@@ -59,10 +59,12 @@ router.post('/admin/offers', verifyAdmin, async (req, res) => {
   }
 });
 
-// Admin: Update offer
-router.put('/admin/offers/:id', verifyAdmin, async (req, res) => {
+// Helper for updating offer
+async function updateOfferHandler(req, res) {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'Invalid offer ID' });
+
     const existing = await db('offers').where('id', id).first();
     if (!existing) return res.status(404).json({ error: 'Offer not found' });
 
@@ -84,12 +86,18 @@ router.put('/admin/offers/:id', verifyAdmin, async (req, res) => {
     console.error('Error updating offer:', err);
     res.status(500).json({ error: 'Failed to update offer' });
   }
-});
+}
+
+// Admin: Update offer (supports PUT and POST)
+router.put('/admin/offers/:id', verifyAdmin, updateOfferHandler);
+router.post('/admin/offers/:id', verifyAdmin, updateOfferHandler);
 
 // Admin: Delete offer
 router.delete('/admin/offers/:id', verifyAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ error: 'Invalid offer ID' });
+
     const existing = await db('offers').where('id', id).first();
     if (!existing) return res.status(404).json({ error: 'Offer not found' });
 
@@ -103,4 +111,3 @@ router.delete('/admin/offers/:id', verifyAdmin, async (req, res) => {
 });
 
 module.exports = router;
-

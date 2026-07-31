@@ -133,18 +133,21 @@ export default function AdminOffers() {
       setShowForm(false);
       loadOffers();
     } else {
-      setFormError(res.error || 'Failed to save offer');
+      if (res.error?.toLowerCase().includes('not found')) {
+        setShowForm(false);
+        loadOffers();
+      } else {
+        setFormError(res.error || 'Failed to save offer');
+      }
     }
   }
 
   async function handleDelete(id: number) {
     setDeleting(true);
     const res = await api.deleteOffer(id);
-    if (res.success) {
-      setOffers((prev) => prev.filter((o) => o.id !== id));
-    }
     setDeleting(false);
     setDeleteId(null);
+    loadOffers();
   }
 
   return (
