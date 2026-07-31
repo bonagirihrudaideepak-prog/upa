@@ -9,11 +9,11 @@ interface NavbarProps {
 
 function NavbarSkeleton() {
   return (
-    <div className="flex gap-2 px-gutter py-2 overflow-hidden">
+    <div className="flex gap-2 px-gutter py-2.5 overflow-hidden bg-cream-paper border-b border-ash">
       {Array.from({ length: 6 }).map((_, i) => (
         <div
           key={i}
-          className="h-9 w-24 rounded-full bg-ash/50 animate-pulse shrink-0"
+          className="h-8 w-24 rounded-full bg-ash/50 animate-pulse shrink-0"
         />
       ))}
     </div>
@@ -32,29 +32,29 @@ export default function Navbar({ categories, loading }: NavbarProps) {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <div className="sticky top-14 md:top-16 z-40 bg-cream-paper/90 backdrop-blur-sm border-b border-ash">
+    <div className="sticky top-[84px] md:top-[92px] z-40 bg-cream-paper/95 backdrop-blur-md border-b border-ash shadow-sm transition-all duration-300">
       <div
         ref={scrollRef}
-        className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-gutter py-2 max-w-container mx-auto"
+        className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-gutter py-2.5 max-w-container mx-auto"
       >
         <Link
           to="/catalog"
-          className={`shrink-0 font-sans text-label-sm px-4 py-1.5 rounded-full border transition-colors ${
+          className={`shrink-0 font-sans text-label-sm font-semibold px-4 py-1.5 rounded-full border transition-all ${
             !activeSlug
-              ? 'bg-white border-ash text-ink-black'
-              : 'bg-transparent border-ash text-smoke hover:text-ink-black'
+              ? 'bg-ink-black border-ink-black text-white shadow-sm'
+              : 'bg-white border-ash text-smoke hover:text-ink-black hover:border-ink-black'
           }`}
         >
-          All
+          All Products
         </Link>
         {categories.map((cat) => (
           <Link
             key={cat.id}
             to={`/category/${cat.slug}`}
-            className={`shrink-0 font-sans text-label-sm px-4 py-1.5 rounded-full border transition-colors whitespace-nowrap ${
+            className={`shrink-0 font-sans text-label-sm font-semibold px-4 py-1.5 rounded-full border transition-all whitespace-nowrap ${
               activeSlug === cat.slug
-                ? 'bg-white border-ash text-ink-black'
-                : 'bg-transparent border-ash text-smoke hover:text-ink-black'
+                ? 'bg-ink-black border-ink-black text-white shadow-sm'
+                : 'bg-white border-ash text-smoke hover:text-ink-black hover:border-ink-black'
             }`}
           >
             {cat.name}

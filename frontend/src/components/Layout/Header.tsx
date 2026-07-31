@@ -83,11 +83,6 @@ export default function Header() {
             <Link to="/catalog" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors font-medium">
               Catalog
             </Link>
-
-            <Link to="/customization" className="font-sans text-body-sm text-[#004ac6] hover:underline transition-colors font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-base">edit_note</span>
-              Custom Covers
-            </Link>
           </nav>
         </div>
       </header>

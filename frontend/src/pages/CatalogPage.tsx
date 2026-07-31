@@ -93,7 +93,7 @@ export default function CatalogPage() {
       <Header />
       <Navbar categories={categories} loading={categoriesLoading} />
 
-      <main className="flex-1 w-full pt-28 md:pt-32 pb-12">
+      <main className="flex-1 w-full pt-24 md:pt-28 pb-12">
         <div className="max-w-container mx-auto px-gutter">
           {/* Page Title */}
           <div className="py-6">

@@ -4,7 +4,6 @@ import { AppProvider } from './context/AppContext';
 import LandingPage from './pages/LandingPage';
 import CatalogPage from './pages/CatalogPage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import CustomizationPage from './pages/CustomizationPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminProducts from './pages/admin/AdminProducts';
@@ -20,7 +19,6 @@ export default function App() {
         <Route path="/catalog" element={<CatalogPage />} />
         <Route path="/category/:slug" element={<CatalogPage />} />
         <Route path="/product/:id" element={<ProductDetailPage />} />
-        <Route path="/customization" element={<CustomizationPage />} />
         <Route path="/admin" element={<AdminLogin />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
         <Route path="/admin/products" element={<AdminProducts />} />

@@ -127,14 +127,6 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
               >
                 Offers
               </Link>
-              <Link
-                to="/customization"
-                onClick={onClose}
-                className="font-sans text-body-md text-[#004ac6] py-2.5 hover:underline transition-colors font-medium flex items-center gap-1.5"
-              >
-                <span className="material-symbols-outlined text-lg">edit_note</span>
-                Custom Cover Booking
-              </Link>
             </div>
 
             <hr className="border-ash my-4" />
