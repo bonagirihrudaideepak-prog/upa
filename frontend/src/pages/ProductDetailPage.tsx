@@ -5,14 +5,8 @@ import Footer from '../components/Layout/Footer';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
 import InstagramButton from '../components/Social/InstagramButton';
 import { useApp } from '../context/AppContext';
-import { api, getImageUrl } from '../utils/api';
+import { api, getImageUrl, formatLikes } from '../utils/api';
 import type { Product, ProductVariant } from '../types';
-
-function formatLikes(count: number): string {
-  if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
-  if (count >= 1000) return (count / 1000).toFixed(1) + 'k';
-  return count.toString();
-}
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();

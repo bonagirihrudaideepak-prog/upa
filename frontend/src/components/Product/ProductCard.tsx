@@ -1,17 +1,11 @@
 import type { Product, ProductVariant } from '../../types';
-import { getImageUrl } from '../../utils/api';
+import { getImageUrl, formatLikes } from '../../utils/api';
 
 interface ProductCardProps {
   product: Product;
   onLike: (id: number) => void;
   onAddToCart: (product: Product, variant?: ProductVariant) => void;
   onClick: (product: Product) => void;
-}
-
-function formatLikes(count: number): string {
-  if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
-  if (count >= 1000) return (count / 1000).toFixed(1) + 'k';
-  return count.toString();
 }
 
 export default function ProductCard({ product, onLike, onAddToCart, onClick }: ProductCardProps) {

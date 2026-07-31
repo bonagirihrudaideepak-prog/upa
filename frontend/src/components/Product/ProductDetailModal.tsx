@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { Product, ProductVariant } from '../../types';
-import { getImageUrl, api } from '../../utils/api';
+import { getImageUrl, api, formatLikes } from '../../utils/api';
 import { useApp } from '../../context/AppContext';
 
 interface ProductDetailModalProps {
@@ -8,12 +8,6 @@ interface ProductDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onAddToCart?: (product: Product, variant?: ProductVariant) => void;
-}
-
-function formatLikes(count: number): string {
-  if (count >= 1000000) return (count / 1000000).toFixed(1) + 'M';
-  if (count >= 1000) return (count / 1000).toFixed(1) + 'k';
-  return count.toString();
 }
 
 export default function ProductDetailModal({ product, isOpen, onClose }: ProductDetailModalProps) {
