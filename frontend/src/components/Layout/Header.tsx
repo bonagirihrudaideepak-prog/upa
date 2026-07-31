@@ -52,7 +52,7 @@ export default function Header() {
           </button>
 
           <Link to="/" className="font-serif text-title-md text-ink-black tracking-tight font-bold">
-            DEEPAK ELECTRONICS
+            UPANISHAD MOBILE STORE
           </Link>
 
           <div className="flex items-center gap-2">
@@ -68,8 +68,8 @@ export default function Header() {
 
         {/* Desktop Header Bar */}
         <div className="hidden md:flex items-center justify-between h-16 px-margin max-w-container mx-auto">
-          <Link to="/" className="font-serif text-headline-md text-ink-black tracking-tight shrink-0 font-bold">
-            DEEPAK ELECTRONICS
+          <Link to="/" className="font-serif text-title-lg text-ink-black tracking-tight shrink-0 font-bold">
+            UPANISHAD MOBILE STORE
           </Link>
 
           <div className="flex-1 max-w-md mx-8">

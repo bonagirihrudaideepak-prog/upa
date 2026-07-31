@@ -4,10 +4,10 @@ interface InstagramButtonProps {
   username?: string;
 }
 
-export default function InstagramButton({ username = 'deepak_electronics' }: InstagramButtonProps) {
+export default function InstagramButton({ username = 'upanishadmobiles' }: InstagramButtonProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
-  const instagramUrl = `https://instagram.com/${username}`;
+  const instagramUrl = `https://www.instagram.com/${username}/`;
 
   return (
     <div className="fixed bottom-24 right-6 z-50">

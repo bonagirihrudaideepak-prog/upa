@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Product, ProductVariant } from '../../types';
 import { getImageUrl, api } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -16,6 +17,7 @@ function formatLikes(count: number): string {
 }
 
 export default function ProductDetailModal({ product, isOpen, onClose }: ProductDetailModalProps) {
+  const { whatsappNumber, instagramUrl: ctxInstagramUrl } = useApp();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [likesCount, setLikesCount] = useState(0);
@@ -33,10 +35,10 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
     }
   }, [product]);
 
-  if (!product || !isOpen) return null;
+  if (!isOpen || !product) return null;
 
   const p = product;
-  const imageUrl = p.images?.[0] ? getImageUrl(p.images[0].image_path) : '';
+  const imageUrl = p.images?.[0] ? getImageUrl(p.images[0].image_path) : (p.main_image ? getImageUrl(p.main_image) : '');
 
   const uniqueColors = p.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
     if (!acc.find((c) => c.code === v.color_code)) {
@@ -58,16 +60,15 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
     setLiking(false);
   }
 
-  const selectedColorObj = uniqueColors.find(c => c.code === selectedColor);
-  const colorName = selectedColorObj ? selectedColorObj.color : '';
-
-  const orderMessage = `Hi Deepak Electronics! I want to order/pickup:
+  const colorName = uniqueColors.find((c) => c.code === selectedColor)?.color ?? '';
+  const orderMessage = `Hi Upanishad Mobile Store, I would like to reserve/order:
 - Product: ${p.name}
 - Price: ₹${p.price}
 ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${colorName}\n` : ''}- Order Type: Store Pickup / Takeaway`;
 
-  const whatsappUrl = `https://wa.me/919999999999?text=${encodeURIComponent(orderMessage)}`;
-  const instagramUrl = `https://instagram.com/`;
+  const num = whatsappNumber.replace(/[^0-9]/g, '');
+  const whatsappUrl = `https://wa.me/${num}?text=${encodeURIComponent(orderMessage)}`;
+  const instagramUrl = ctxInstagramUrl;
 
   return (
     <div

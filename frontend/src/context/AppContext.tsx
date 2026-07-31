@@ -11,6 +11,9 @@ interface AppState {
   cart: CartItem[];
   whatsappNumber: string;
   contactPhone: string;
+  instagramUrl: string;
+  locationMapUrl: string;
+  storeName: string;
   isAdmin: boolean;
   toasts: Toast[];
   loading: boolean;
@@ -70,8 +73,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
     <AppContext.Provider
       value={{
         cart,
-        whatsappNumber: '+919999999999',
-        contactPhone: '+919999999999',
+        whatsappNumber: '+919666731286',
+        contactPhone: '+919666731286',
+        instagramUrl: 'https://www.instagram.com/upanishadmobiles/',
+        locationMapUrl: 'https://maps.app.goo.gl/JRej6So64iYYm7ia6',
+        storeName: 'Upanishad Mobile Store',
         isAdmin,
         toasts,
         loading,

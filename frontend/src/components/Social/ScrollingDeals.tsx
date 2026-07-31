@@ -1,5 +1,5 @@
 export default function ScrollingDeals() {
-  const text = "⚡ Check my WhatsApp group or status for more deals & exclusive discounts!!! ⚡";
+  const text = "⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡";
 
   return (
     <div className="w-full bg-ink-black text-white overflow-hidden py-1.5 border-b border-white/10 z-50">
