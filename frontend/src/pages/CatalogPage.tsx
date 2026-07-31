@@ -91,10 +91,9 @@ export default function CatalogPage() {
   return (
     <div className="min-h-screen flex flex-col bg-cream-paper">
       <Header />
-      <ScrollingDeals />
       <Navbar categories={categories} loading={categoriesLoading} />
 
-      <main className="flex-1 w-full pt-20 md:pt-24 pb-12">
+      <main className="flex-1 w-full pt-28 md:pt-32 pb-12">
         <div className="max-w-container mx-auto px-gutter">
           {/* Page Title */}
           <div className="py-6">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import SearchBar from '../Search/SearchBar';
 import MobileMenu from './MobileMenu';
+import ScrollingDeals from '../Social/ScrollingDeals';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -37,7 +38,10 @@ export default function Header() {
           visible ? 'translate-y-0' : '-translate-y-full'
         }`}
       >
-        {/* Mobile */}
+        {/* Infinite Marquee Ticker at Top */}
+        <ScrollingDeals />
+
+        {/* Mobile Header Bar */}
         <div className="flex items-center justify-between px-gutter h-14 md:hidden">
           <button
             onClick={() => setMobileMenuOpen(true)}
@@ -47,7 +51,7 @@ export default function Header() {
             <span className="material-symbols-outlined text-ink-black text-2xl">menu</span>
           </button>
 
-          <Link to="/" className="font-serif text-headline-sm text-ink-black tracking-tight">
+          <Link to="/" className="font-serif text-title-md text-ink-black tracking-tight font-bold">
             DEEPAK ELECTRONICS
           </Link>
 
@@ -62,9 +66,9 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Desktop */}
+        {/* Desktop Header Bar */}
         <div className="hidden md:flex items-center justify-between h-16 px-margin max-w-container mx-auto">
-          <Link to="/" className="font-serif text-headline-md text-ink-black tracking-tight shrink-0">
+          <Link to="/" className="font-serif text-headline-md text-ink-black tracking-tight shrink-0 font-bold">
             DEEPAK ELECTRONICS
           </Link>
 
@@ -73,16 +77,17 @@ export default function Header() {
           </div>
 
           <nav className="flex items-center gap-6" aria-label="Main navigation">
-            <Link to="/" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors">
+            <Link to="/" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors font-medium">
               Home
             </Link>
-            <Link to="/catalog" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors">
+            <Link to="/catalog" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors font-medium">
               Catalog
             </Link>
-            <Link to="/customization" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors">
-              Customize
-            </Link>
 
+            <Link to="/customization" className="font-sans text-body-sm text-[#004ac6] hover:underline transition-colors font-medium flex items-center gap-1">
+              <span className="material-symbols-outlined text-base">edit_note</span>
+              Custom Covers
+            </Link>
           </nav>
         </div>
       </header>

@@ -78,9 +78,8 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-cream-paper">
       <Header />
-      <ScrollingDeals />
 
-      <main className="flex-1 w-full pt-20 md:pt-24 pb-12">
+      <main className="flex-1 w-full pt-24 md:pt-28 pb-12">
         {/* Hero Section */}
         <section className="max-w-container mx-auto px-gutter mb-10">
           <div className="w-full aspect-[3/4] md:aspect-video rounded-xl overflow-hidden relative bg-cream-paper border border-ash">
