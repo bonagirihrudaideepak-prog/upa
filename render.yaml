@@ -1,17 +1,14 @@
 services:
   - type: web
     name: upanishad-store
-    env: docker
-    dockerfilePath: ./Dockerfile
+    env: node
+    buildCommand: npm run build
+    startCommand: npm start
     plan: free
     envVars:
-      - key: DB_HOST
-        sync: false
-      - key: DB_PORT
-        value: "3306"
-      - key: DB_NAME
-        sync: false
-      - key: DB_USER
-        sync: false
-      - key: DB_PASS
-        sync: false
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: JWT_SECRET
+        generateValue: true

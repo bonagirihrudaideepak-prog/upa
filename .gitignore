@@ -2,14 +2,15 @@
 node_modules/
 frontend/node_modules/
 
-# Build outputs
-dist/
-frontend/dist/
-
-# Environment & Credentials
+# Environment & Local DB
 .env
 backend/.env
 *.env
+data/*.sqlite
+data/*.db
+
+# Build output
+frontend/dist/
 
 # IDE & OS
 .DS_Store
