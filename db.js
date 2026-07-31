@@ -176,15 +176,211 @@ async function initDb() {
     if (!catCount || parseInt(catCount.count) === 0) {
       await db('categories').insert([
         { name: 'Electronics', slug: 'electronics', description: 'Electronic devices and accessories', display_order: 1, is_active: true },
-        { name: 'Clothing', slug: 'clothing', description: 'Clothing and apparel', display_order: 2, is_active: true },
-        { name: 'Home', slug: 'home', description: 'Home goods and decor', display_order: 3, is_active: true },
-        { name: 'Beauty', slug: 'beauty', description: 'Beauty and wellness products', display_order: 4, is_active: true },
-        { name: 'Accessories', slug: 'accessories', description: 'Fashion accessories', display_order: 5, is_active: true },
-        { name: 'Gadgets', slug: 'gadgets', description: 'Tech gadgets and devices', display_order: 6, is_active: true },
-        { name: 'Others', slug: 'others', description: 'Other products', display_order: 7, is_active: true }
+        { name: 'iPhone', slug: 'iphone', description: 'Apple iPhone devices and covers', display_order: 2, is_active: true },
+        { name: 'Samsung', slug: 'samsung', description: 'Samsung smartphones and covers', display_order: 3, is_active: true },
+        { name: 'Accessories', slug: 'accessories', description: 'Covers, cases, tempered glass & protectors', display_order: 4, is_active: true },
+        { name: 'Gadgets', slug: 'gadgets', description: 'Smartwatches, earbuds & fast chargers', display_order: 5, is_active: true },
+        { name: 'Others', slug: 'others', description: 'Other electronic items & accessories', display_order: 6, is_active: true }
       ]);
       console.log('[DB] Seeded default categories');
     }
+
+    // Seed Dummy Products if empty
+    const prodCount = await db('products').count('id as count').first();
+    if (!prodCount || parseInt(prodCount.count) === 0) {
+      console.log('[DB] Seeding dummy products and offers...');
+      const dummyProducts = [
+        {
+          name: 'iPhone 17 Pro Max',
+          description: 'The flagship iPhone with A19 Pro chip, titanium design, and revolutionary camera system.',
+          sku: 'IP17PM-256',
+          price: 134999.00,
+          category: 'Electronics',
+          stock: 15,
+          is_featured: true,
+          is_new_arrival: true,
+          is_offer: false,
+          is_out_of_stock: false,
+          likes_count: 1420,
+          imageUrl: 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800',
+          variants: [
+            { color: 'Natural Titanium', color_code: '#bebaa7', model: 'iPhone 17 Pro Max 256GB', stock: 10 },
+            { color: 'Deep Blue', color_code: '#2c3e50', model: 'iPhone 17 Pro Max 512GB', stock: 5 }
+          ]
+        },
+        {
+          name: 'Samsung Galaxy S25 Ultra',
+          description: 'Galaxy AI powered flagship smartphone with integrated S-Pen and 200MP Quad Tele camera.',
+          sku: 'SGS25U-512',
+          price: 129999.00,
+          category: 'Electronics',
+          stock: 12,
+          is_featured: true,
+          is_new_arrival: true,
+          is_offer: true,
+          is_out_of_stock: false,
+          likes_count: 2150,
+          imageUrl: 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800',
+          variants: [
+            { color: 'Titanium Gray', color_code: '#708090', model: 'Galaxy S25 Ultra 512GB', stock: 8 },
+            { color: 'Titanium Black', color_code: '#1c1c1c', model: 'Galaxy S25 Ultra 1TB', stock: 4 }
+          ]
+        },
+        {
+          name: 'MagSafe Premium Matte Leather Case',
+          description: 'Premium shockproof matte leather back cover with strong built-in MagSafe magnetic ring.',
+          sku: 'MAG-LTR-01',
+          price: 1499.00,
+          category: 'Accessories',
+          stock: 50,
+          is_featured: true,
+          is_new_arrival: false,
+          is_offer: true,
+          is_out_of_stock: false,
+          likes_count: 3890,
+          imageUrl: 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=800',
+          variants: [
+            { color: 'Saddle Brown', color_code: '#8B4513', model: 'iPhone 16 Pro', stock: 25 },
+            { color: 'Midnight Black', color_code: '#000000', model: 'iPhone 15 Pro Max', stock: 25 }
+          ]
+        },
+        {
+          name: 'Wireless Noise Cancelling Earbuds Pro',
+          description: 'Active Noise Cancellation (ANC), 36-hour total battery life, HD Spatial Audio, and IPX5 water resistance.',
+          sku: 'ANC-EAR-PRO',
+          price: 4999.00,
+          category: 'Gadgets',
+          stock: 30,
+          is_featured: true,
+          is_new_arrival: true,
+          is_offer: false,
+          is_out_of_stock: false,
+          likes_count: 1850,
+          imageUrl: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800',
+          variants: [
+            { color: 'Glossy White', color_code: '#FFFFFF', model: 'Standard ANC', stock: 20 },
+            { color: 'Matte Black', color_code: '#121212', model: 'Pro Edition ANC', stock: 10 }
+          ]
+        },
+        {
+          name: 'Fast Charging 65W GaN Dual Adapter',
+          description: 'Ultra-compact 65W Gallium Nitride fast charger for iPhone, Samsung, MacBooks, and Android devices.',
+          sku: 'GAN-65W-CHG',
+          price: 2199.00,
+          category: 'Gadgets',
+          stock: 45,
+          is_featured: false,
+          is_new_arrival: true,
+          is_offer: true,
+          is_out_of_stock: false,
+          likes_count: 940,
+          imageUrl: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800',
+          variants: [
+            { color: 'Pure White', color_code: '#F8F9FA', model: 'Dual Port 65W GaN', stock: 45 }
+          ]
+        },
+        {
+          name: 'Customized Photo Printed Glass Cover',
+          description: '9H tempered glass back cover customized with your personal photo, design, or name engraving.',
+          sku: 'CUST-GLASS-01',
+          price: 799.00,
+          category: 'Accessories',
+          stock: 100,
+          is_featured: true,
+          is_new_arrival: true,
+          is_offer: true,
+          is_out_of_stock: false,
+          likes_count: 5120,
+          imageUrl: 'https://images.unsplash.com/photo-1541877944-ac82a091518a?w=800',
+          variants: [
+            { color: 'Glass Print', color_code: '#333333', model: 'iPhone 16 / 15 / Samsung S24', stock: 100 }
+          ]
+        },
+        {
+          name: 'Smart Fitness Watch Ultra',
+          description: '1.96-inch AMOLED display, Bluetooth calling, SpO2 & Heart Rate monitoring, 100+ sports modes.',
+          sku: 'SWT-ULT-01',
+          price: 3499.00,
+          category: 'Gadgets',
+          stock: 20,
+          is_featured: false,
+          is_new_arrival: false,
+          is_offer: true,
+          is_out_of_stock: false,
+          likes_count: 1250,
+          imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800',
+          variants: [
+            { color: 'Ocean Orange', color_code: '#FF6F00', model: '49mm Titanium Style', stock: 10 },
+            { color: 'Tactical Black', color_code: '#212121', model: '49mm Black Style', stock: 10 }
+          ]
+        }
+      ];
+
+      for (const item of dummyProducts) {
+        const { imageUrl, variants, ...prodData } = item;
+        const inserted = await db('products').insert(prodData);
+        const productId = Array.isArray(inserted) ? inserted[0] : inserted;
+
+        // Image
+        await db('product_images').insert({
+          product_id: productId,
+          image_path: imageUrl,
+          image_type: 'main',
+          display_order: 0
+        });
+
+        // Variants
+        if (variants && variants.length > 0) {
+          const varInserts = variants.map(v => ({
+            product_id: productId,
+            color: v.color,
+            color_code: v.color_code,
+            model: v.model,
+            stock: v.stock
+          }));
+          await db('product_variants').insert(varInserts);
+        }
+
+        // Add dummy review
+        await db('reviews').insert({
+          product_id: productId,
+          user_name: 'Rahul K.',
+          rating: 5,
+          comment: 'Excellent quality and super fast in-store pickup! Highly recommended.'
+        });
+      }
+      console.log('[DB] Seeded 7 dummy products with images, variants and reviews');
+    }
+
+    // Seed Dummy Offers / Banners if empty
+    const offerCount = await db('offers').count('id as count').first();
+    if (!offerCount || parseInt(offerCount.count) === 0) {
+      await db('offers').insert([
+        {
+          title: 'Mega Monsoon Sale - Up to 50% Off Mobile Accessories',
+          description: 'Grab premium iPhone & Samsung cases, screen guards, and fast chargers at unbeatable prices!',
+          image_path: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1200',
+          link: '/catalog?filter=offers',
+          is_active: true
+        },
+        {
+          title: 'Customized Phone Covers Booking Open!',
+          description: 'Print your photo, name, or custom art on premium toughened glass covers. Fast store pickup!',
+          image_path: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=1200',
+          link: '/customization',
+          is_active: true
+        },
+        {
+          title: 'New Arrival: iPhone 17 & Galaxy S25 Accessories in Stock',
+          description: 'Visit Deepak Electronics for exclusive covers, tempered glass, and camera lens protectors!',
+          image_path: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=1200',
+          link: '/catalog',
+          is_active: true
+        }
+      ]);
+      console.log('[DB] Seeded 3 dummy offer banners');
+    }
+
   } catch (err) {
     console.error('[DB] Initialization error:', err);
   }
