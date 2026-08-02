@@ -39,6 +39,14 @@ app.use((req, res, next) => {
 // Enable ETag for conditional responses (304 Not Modified)
 app.set('etag', 'strong');
 
+// Disable browser caching for dynamic API responses (ensures updates like deleted banners reflect immediately across devices)
+app.use('/api', (req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // Body Parsers
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true, limit: '5mb' }));

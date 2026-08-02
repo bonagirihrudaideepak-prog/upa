@@ -6,15 +6,11 @@ const { verifyAdmin } = require('../middleware/auth');
 // Public: Get all active offers
 router.get('/offers', async (req, res) => {
   try {
-    const cached = apiCache ? apiCache.get('offers') : null;
-    if (cached) return res.json(cached);
-
     const offers = await db('offers')
       .where('is_active', true)
       .orWhere('is_active', 1)
       .orderBy('created_at', 'desc');
     const result = offers.map(formatOffer);
-    if (apiCache) apiCache.set('offers', result);
     res.json(result);
   } catch (err) {
     console.error('Error fetching offers:', err);
