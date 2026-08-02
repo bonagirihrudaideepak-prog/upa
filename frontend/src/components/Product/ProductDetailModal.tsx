@@ -188,48 +188,37 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
             )}
           </div>
 
-          {/* Store Pickup / Takeaway Notice & Order Actions */}
-          {showPickupNotice ? (
-            <div className="bg-[#fcf8f2] border border-[#f5c6cb] rounded p-4 space-y-3 animate-fadeIn">
-              <div className="flex items-start gap-2.5">
-                <span className="material-symbols-outlined text-[#856404] text-xl">store</span>
-                <div>
-                  <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup & Takeaway Only</p>
-                  <p className="font-sans text-caption text-[#856404] mt-0.5">
-                    Our store currently accepts in-store pickups & takeaways (no delivery option yet). Connect via WhatsApp or Call to confirm your order details!
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-2 pt-1">
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#25D366] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded hover:bg-[#20bd5a] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-lg">chat</span>
-                  Order on WhatsApp
-                </a>
-                <a
-                  href="tel:+919666731286"
-                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#007AFF] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded hover:bg-[#0056b3] transition-colors"
-                >
-                  <span className="material-symbols-outlined text-lg">call</span>
-                  Call Store Now
-                </a>
+          {/* Store Pickup & Takeaway Actions */}
+          <div className="bg-[#fcf8f2] border border-[#f5c6cb] rounded p-4 space-y-3">
+            <div className="flex items-start gap-2.5">
+              <span className="material-symbols-outlined text-[#856404] text-xl">store</span>
+              <div>
+                <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup & Takeaway Only</p>
+                <p className="font-sans text-caption text-[#856404] mt-0.5">
+                  Connect directly via WhatsApp or Call to confirm product availability and details!
+                </p>
               </div>
             </div>
-          ) : (
-            <button
-              onClick={() => setShowPickupNotice(true)}
-              disabled={p.is_out_of_stock}
-              className="w-full bg-ink-black text-white font-label-sm text-label-sm px-6 py-3 rounded uppercase hover:bg-smoke disabled:bg-ash disabled:cursor-not-allowed transition-colors tracking-wider flex items-center justify-center gap-2"
-            >
-              <span className="material-symbols-outlined text-lg">shopping_bag</span>
-              {p.is_out_of_stock ? 'Out of Stock' : 'Add to Cart / Order Now'}
-            </button>
-          )}
+
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 inline-flex items-center justify-center gap-2 bg-[#25D366] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-3 rounded hover:bg-[#20bd5a] transition-colors shadow-sm"
+              >
+                <span className="material-symbols-outlined text-lg">chat</span>
+                Order on WhatsApp
+              </a>
+              <a
+                href="tel:+919666731286"
+                className="flex-1 inline-flex items-center justify-center gap-2 bg-[#007AFF] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-3 rounded hover:bg-[#0056b3] transition-colors shadow-sm"
+              >
+                <span className="material-symbols-outlined text-lg">call</span>
+                Call Store Now
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>

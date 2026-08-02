@@ -134,19 +134,6 @@ export default function ProductCard({ product, onLike, onAddToCart, onClick }: P
               <span className="material-symbols-outlined text-[18px]">favorite</span>
               <span className="font-sans text-caption font-semibold">{formatLikes(product.likes_count)}</span>
             </button>
-
-            {!product.is_out_of_stock && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddToCart(product);
-                }}
-                className="bg-ink-black text-white font-sans text-[10px] md:text-label-sm uppercase tracking-wider px-2.5 md:px-3.5 py-1 md:py-1.5 rounded hover:bg-[#004ac6] transition-colors shadow-sm"
-                aria-label="Add to cart"
-              >
-                Order
-              </button>
-            )}
           </div>
         </div>
       </div>
