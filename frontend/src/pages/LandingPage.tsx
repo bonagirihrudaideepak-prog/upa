@@ -7,15 +7,16 @@ import WhatsAppButton from '../components/Social/WhatsAppButton';
 import InstagramButton from '../components/Social/InstagramButton';
 import ProductGrid from '../components/Product/ProductGrid';
 import ProductDetailModal from '../components/Product/ProductDetailModal';
+import HeroBannerCarousel from '../components/Banner/HeroBannerCarousel';
 import { useApp } from '../context/AppContext';
-import { api, getImageUrl } from '../utils/api';
+import { api } from '../utils/api';
 import type { Product, Offer, Category, ProductVariant } from '../types';
 
 const FEATURED_CATEGORIES = [
-  { name: 'iPhone', slug: 'iphone', icon: 'smartphone' },
-  { name: 'Samsung', slug: 'samsung', icon: 'devices' },
-  { name: 'Accessories', slug: 'accessories', icon: 'cable' },
-  { name: 'Gadgets', slug: 'gadgets', icon: 'stadia_controller' },
+  { name: 'iPhone', slug: 'iphone', icon: 'phone_iphone', color: '#007AFF' },
+  { name: 'Samsung', slug: 'samsung', icon: 'smartphone', color: '#1428A0' },
+  { name: 'Accessories', slug: 'accessories', icon: 'headphones', color: '#FF6B35' },
+  { name: 'Gadgets', slug: 'gadgets', icon: 'watch', color: '#34C759' },
 ];
 
 export default function LandingPage() {
@@ -72,43 +73,13 @@ export default function LandingPage() {
     }
   }
 
-  const firstOffer = offers.find((o) => o.is_active) ?? offers[0];
-  const heroImage = firstOffer ? getImageUrl(firstOffer.image_path) : '';
-
   return (
     <div className="min-h-screen flex flex-col bg-cream-paper">
       <Header />
 
       <main className="flex-1 w-full pt-24 md:pt-28 pb-12">
         {/* Hero Section */}
-        <section className="max-w-container mx-auto px-gutter mb-10">
-          <div className="w-full aspect-[3/4] md:aspect-video rounded-xl overflow-hidden relative bg-cream-paper border border-ash">
-            {offersLoading ? (
-              <div className="w-full h-full animate-pulse bg-cream-paper" />
-            ) : heroImage ? (
-              <img
-                src={heroImage}
-                alt={firstOffer?.title ?? ''}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-smoke">
-                <span className="material-symbols-outlined text-6xl">celebration</span>
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-ink-black/80 via-ink-black/20 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-              <h1 className="font-headline-lg md:font-display text-white butter-underline">
-                Modern Tech, Curated for You
-              </h1>
-              {firstOffer?.description && (
-                <p className="font-body-md text-body-md text-white/80 mt-2 max-w-xl">
-                  {firstOffer.description}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
+        <HeroBannerCarousel offers={offers} loading={offersLoading} />
 
         {/* Featured Categories */}
         <section className="max-w-container mx-auto px-gutter mb-10">
@@ -120,11 +91,16 @@ export default function LandingPage() {
               <Link
                 key={cat.slug}
                 to={`/category/${cat.slug}`}
-                className="flex flex-col items-center gap-3 p-6 bg-white border border-ash rounded hover:border-ink-black transition-colors group"
+                className="flex flex-col items-center gap-3 p-5 bg-white border border-ash rounded-xl hover:border-ink-black hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 group"
               >
-                <span className="material-symbols-outlined text-3xl text-smoke group-hover:text-ink-black transition-colors">
-                  {cat.icon}
-                </span>
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+                  style={{ backgroundColor: cat.color }}
+                >
+                  <span className="material-symbols-outlined text-2xl text-white">
+                    {cat.icon}
+                  </span>
+                </div>
                 <span className="font-label-md text-label-md text-ink-black">{cat.name}</span>
               </Link>
             ))}

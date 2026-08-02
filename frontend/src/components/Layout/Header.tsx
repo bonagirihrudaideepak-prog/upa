@@ -81,7 +81,7 @@ export default function Header() {
               Home
             </Link>
             <Link to="/catalog" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors font-medium">
-              Catalog
+              All Products
             </Link>
           </nav>
         </div>

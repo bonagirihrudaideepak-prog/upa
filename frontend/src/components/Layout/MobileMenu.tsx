@@ -79,6 +79,13 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
                 Home
               </Link>
               <Link
+                to="/catalog"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors font-medium"
+              >
+                All Products
+              </Link>
+              <Link
                 to="/category/iphone"
                 onClick={onClose}
                 className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
@@ -113,6 +120,9 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
               >
                 Others
               </Link>
+              
+              <hr className="border-ash my-2" />
+              
               <Link
                 to="/catalog?filter=new-arrivals"
                 onClick={onClose}
@@ -127,6 +137,40 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
               >
                 Offers
               </Link>
+            </div>
+
+            <hr className="border-ash my-4" />
+
+            {/* Contact */}
+            <div className="flex flex-col gap-1">
+              <a
+                href="https://wa.me/919666731286"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                className="flex items-center gap-3 font-sans text-body-md text-[#25D366] py-2.5 hover:text-[#20bd5a] transition-colors font-medium"
+              >
+                <span className="material-symbols-outlined text-xl">chat</span>
+                Chat on WhatsApp
+              </a>
+              <a
+                href="tel:+919666731286"
+                onClick={onClose}
+                className="flex items-center gap-3 font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors font-medium"
+              >
+                <span className="material-symbols-outlined text-xl">call</span>
+                Call Us
+              </a>
+              <a
+                href="https://www.instagram.com/upanishadmobiles/"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={onClose}
+                className="flex items-center gap-3 font-sans text-body-md text-[#E1306C] py-2.5 hover:text-[#c1275b] transition-colors font-medium"
+              >
+                <span className="material-symbols-outlined text-xl">photo_camera</span>
+                Follow on Instagram
+              </a>
             </div>
 
             <hr className="border-ash my-4" />

@@ -25,7 +25,7 @@ export default function Footer() {
               Home
             </Link>
             <Link to="/catalog" className="font-sans text-body-sm text-ink-black hover:text-smoke transition-colors">
-              Catalog
+              All Products
             </Link>
           </div>
 
