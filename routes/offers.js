@@ -43,8 +43,8 @@ router.post('/admin/offers', verifyAdmin, async (req, res) => {
       is_active: is_active !== false && is_active !== 'false' && is_active !== 0
     };
 
-    const inserted = await db('offers').insert(newOffer);
-    const id = Array.isArray(inserted) ? inserted[0] : inserted;
+    const inserted = await db('offers').insert(newOffer).returning('id');
+    const id = typeof inserted[0] === 'object' ? inserted[0].id : (inserted[0] || inserted);
 
     if (apiCache) apiCache.invalidate('offers');
 
