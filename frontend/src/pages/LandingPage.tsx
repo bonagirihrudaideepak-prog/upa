@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
-import ScrollingDeals from '../components/Social/ScrollingDeals';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
 import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
@@ -33,6 +32,16 @@ export default function LandingPage() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allProductsLoading, setAllProductsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+  const [isMobile, setIsMobile] = useState<boolean>(() => window.innerWidth < 768);
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth < 768);
+    }
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -88,10 +97,18 @@ export default function LandingPage() {
     }
   }
 
+  // Display limits: 4 on mobile, 8 on desktop (big screens)
+  const displayLimit = isMobile ? 4 : 8;
+
+  // New Arrivals showing strictly top 8 max (or 4 on mobile)
+  const newArrivalsList = useMemo(() => {
+    return newArrivals.slice(0, displayLimit);
+  }, [newArrivals, displayLimit]);
+
   function getProductsByCategory(categoryName: string): Product[] {
     return allProducts.filter(p => 
       String(p.category || '').toLowerCase() === categoryName.toLowerCase()
-    ).slice(0, 4);
+    ).slice(0, displayLimit);
   }
 
   return (
@@ -134,7 +151,7 @@ export default function LandingPage() {
             Top Recommended
           </h2>
           <ProductGrid
-            products={featured.slice(0, 8)}
+            products={featured.slice(0, displayLimit)}
             loading={featuredLoading}
             onLike={handleLike}
             onAddToCart={handleAddToCart}
@@ -149,14 +166,14 @@ export default function LandingPage() {
               New Arrivals
             </h2>
             <Link
-              to="/catalog"
+              to="/catalog?filter=new-arrivals"
               className="font-label-sm text-label-sm text-smoke hover:text-ink-black transition-colors"
             >
               View all
             </Link>
           </div>
           <ProductGrid
-            products={newArrivals.slice(0, 4)}
+            products={newArrivalsList}
             loading={newArrivalsLoading}
             onLike={handleLike}
             onAddToCart={handleAddToCart}
@@ -164,7 +181,7 @@ export default function LandingPage() {
           />
         </section>
 
-        {/* Individual Category Sections */}
+        {/* Individual Category Sections: iPhone, Samsung, Accessories, Gadgets, Others */}
         {['iPhone', 'Samsung', 'Accessories', 'Gadgets', 'Others'].map((catName) => {
           const catProducts = getProductsByCategory(catName);
           const slug = catName.toLowerCase();
