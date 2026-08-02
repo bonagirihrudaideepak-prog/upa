@@ -41,8 +41,12 @@ function parseVariants(input) {
   if (typeof input === 'string') {
     try { return JSON.parse(input); } catch (e) { return []; }
   }
-  if (Array.isArray(input)) return input;
-  if (typeof input === 'object') return Object.values(input);
+  if (Array.isArray(input)) return input.filter(Boolean);
+  if (typeof input === 'object') {
+    const keys = Object.keys(input);
+    // If keys are numbers or numeric strings (e.g. '0', '1')
+    return keys.map(k => input[k]).filter(Boolean);
+  }
   return [];
 }
 
@@ -349,8 +353,8 @@ router.post('/admin/products', verifyAdmin, upload.array('images[]'), async (req
       likes_count: isNaN(initialLikes) ? 0 : initialLikes
     };
 
-    const inserted = await db('products').insert(newProduct);
-    const productId = Array.isArray(inserted) ? inserted[0] : inserted;
+    const inserted = await db('products').insert(newProduct).returning('id');
+    const productId = typeof inserted[0] === 'object' ? inserted[0].id : (inserted[0] || inserted);
 
     // Handle Variants
     const variants = parseVariants(body.variants);
