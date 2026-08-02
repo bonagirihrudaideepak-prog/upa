@@ -132,7 +132,7 @@ export default function LandingPage() {
                 className="flex flex-col items-center gap-2 group"
               >
                 <div
-                  className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-md"
+                  className="w-16 h-16 md:w-20 md:h-20 aspect-square rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-md overflow-hidden"
                   style={{ backgroundColor: cat.color }}
                 >
                   <span className="material-symbols-outlined text-2xl md:text-3xl text-white">
