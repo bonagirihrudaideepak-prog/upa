@@ -103,7 +103,6 @@ export default function CatalogPage() {
   return (
     <div className="min-h-screen flex flex-col bg-cream-paper">
       <Header />
-      <Navbar categories={categories} loading={categoriesLoading} />
 
       <main className="flex-1 w-full pt-24 md:pt-28 pb-12">
         <div className="max-w-container mx-auto px-gutter">
