@@ -78,17 +78,35 @@ router.get('/products/new-arrivals', async (req, res) => {
   }
 });
 
-// 3. Search Products
+// 3. Search Products (Ultra-fast case-insensitive search with limit for 200,000+ scale)
 router.get('/products/search', async (req, res) => {
   try {
     const query = (req.query.q || '').trim();
     if (!query) {
       return res.status(400).json({ error: 'Search query is required' });
     }
-    const products = await db('products')
-      .where('name', 'like', `%${query}%`)
-      .orWhere('description', 'like', `%${query}%`)
-      .orderBy('created_at', 'desc');
+    
+    const clientType = db.client.config.client;
+    let productsQuery = db('products');
+
+    if (clientType === 'pg') {
+      productsQuery = productsQuery
+        .where('name', 'ILIKE', `%${query}%`)
+        .orWhere('description', 'ILIKE', `%${query}%`)
+        .orWhere('sku', 'ILIKE', `%${query}%`)
+        .orWhere('category', 'ILIKE', `%${query}%`);
+    } else {
+      productsQuery = productsQuery
+        .where('name', 'like', `%${query}%`)
+        .orWhere('description', 'like', `%${query}%`)
+        .orWhere('sku', 'like', `%${query}%`)
+        .orWhere('category', 'like', `%${query}%`);
+    }
+
+    const products = await productsQuery
+      .orderBy('created_at', 'desc')
+      .limit(30);
+
     const result = await attachImagesAndVariants(products);
     res.json(result);
   } catch (err) {

@@ -120,6 +120,11 @@ async function initDb() {
         table.boolean('is_out_of_stock').defaultTo(false);
         table.integer('likes_count').defaultTo(0);
         table.timestamp('created_at').defaultTo(db.fn.now());
+        
+        table.index(['category'], 'idx_products_category');
+        table.index(['is_featured'], 'idx_products_featured');
+        table.index(['is_new_arrival'], 'idx_products_new_arrival');
+        table.index(['created_at'], 'idx_products_created_at');
       });
       console.log('[DB] Created "products" table');
     }
