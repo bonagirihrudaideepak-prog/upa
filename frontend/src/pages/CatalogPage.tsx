@@ -5,7 +5,7 @@ import Footer from '../components/Layout/Footer';
 import Navbar from '../components/Layout/Navbar';
 import ScrollingDeals from '../components/Social/ScrollingDeals';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
-import InstagramButton from '../components/Social/InstagramButton';
+import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
 import ProductDetailModal from '../components/Product/ProductDetailModal';
 import { useApp } from '../context/AppContext';
@@ -189,7 +189,7 @@ export default function CatalogPage() {
       />
 
       <WhatsAppButton />
-      <InstagramButton />
+      <CallButton />
       <Footer />
     </div>
   );

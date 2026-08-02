@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
-import InstagramButton from '../components/Social/InstagramButton';
+import CallButton from '../components/Social/CallButton';
 import { useApp } from '../context/AppContext';
 import { api, getImageUrl, formatLikes } from '../utils/api';
 import type { Product, ProductVariant } from '../types';
@@ -291,7 +291,7 @@ export default function ProductDetailPage() {
       </main>
 
       <WhatsAppButton />
-      <InstagramButton />
+      <CallButton />
       <Footer />
     </div>
   );

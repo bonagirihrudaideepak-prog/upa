@@ -75,15 +75,6 @@ export default function Header() {
           <div className="flex-1 max-w-md mx-8">
             <SearchBar />
           </div>
-
-          <nav className="flex items-center gap-6" aria-label="Main navigation">
-            <Link to="/" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors font-medium">
-              Home
-            </Link>
-            <Link to="/catalog" className="font-sans text-body-sm text-smoke hover:text-ink-black transition-colors font-medium">
-              All Products
-            </Link>
-          </nav>
         </div>
       </header>
 

@@ -4,7 +4,7 @@ import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
 import ScrollingDeals from '../components/Social/ScrollingDeals';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
-import InstagramButton from '../components/Social/InstagramButton';
+import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
 import ProductDetailModal from '../components/Product/ProductDetailModal';
 import HeroBannerCarousel from '../components/Banner/HeroBannerCarousel';
@@ -17,6 +17,8 @@ const FEATURED_CATEGORIES = [
   { name: 'Samsung', slug: 'samsung', icon: 'smartphone', color: '#1428A0' },
   { name: 'Accessories', slug: 'accessories', icon: 'headphones', color: '#FF6B35' },
   { name: 'Gadgets', slug: 'gadgets', icon: 'watch', color: '#34C759' },
+  { name: 'Others', slug: 'others', icon: 'devices_other', color: '#8E8E93' },
+  { name: 'All Brands', slug: 'all', icon: 'category', color: '#AF52DE' },
 ];
 
 export default function LandingPage() {
@@ -28,28 +30,38 @@ export default function LandingPage() {
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
   const [newArrivalsLoading, setNewArrivalsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [allProductsLoading, setAllProductsLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
-      const [offersRes, featuredRes, newArrivalsRes, categoriesRes] = await Promise.all([
+      const [offersRes, featuredRes, newArrivalsRes, categoriesRes, allProductsRes] = await Promise.all([
         api.getOffers(),
         api.getFeatured(),
         api.getNewArrivals(),
         api.getCategories(),
+        api.getProducts(),
       ]);
       if (cancelled) return;
       if (offersRes.success && offersRes.data) setOffers(offersRes.data);
       else showToast('Failed to load offers', 'error');
       setOffersLoading(false);
+      
       if (featuredRes.success && featuredRes.data) setFeatured(featuredRes.data);
       else showToast('Failed to load featured products', 'error');
       setFeaturedLoading(false);
+      
       if (newArrivalsRes.success && newArrivalsRes.data) setNewArrivals(newArrivalsRes.data);
       else showToast('Failed to load new arrivals', 'error');
       setNewArrivalsLoading(false);
+      
       if (categoriesRes.success && categoriesRes.data) setCategories(categoriesRes.data);
+      
+      if (allProductsRes.success && allProductsRes.data) setAllProducts(allProductsRes.data);
+      else showToast('Failed to load all products', 'error');
+      setAllProductsLoading(false);
     }
     load();
     return () => { cancelled = true; };
@@ -70,7 +82,16 @@ export default function LandingPage() {
       setNewArrivals((prev) =>
         prev.map((p) => (p.id === productId ? { ...p, likes_count: p.likes_count + 1 } : p))
       );
+      setAllProducts((prev) =>
+        prev.map((p) => (p.id === productId ? { ...p, likes_count: p.likes_count + 1 } : p))
+      );
     }
+  }
+
+  function getProductsByCategory(categoryName: string): Product[] {
+    return allProducts.filter(p => 
+      String(p.category || '').toLowerCase() === categoryName.toLowerCase()
+    ).slice(0, 4);
   }
 
   return (
@@ -82,26 +103,26 @@ export default function LandingPage() {
         <HeroBannerCarousel offers={offers} loading={offersLoading} />
 
         {/* Featured Categories */}
-        <section className="max-w-container mx-auto px-gutter mb-10">
-          <h2 className="font-headline-md text-headline-md text-ink-black mb-5 butter-underline">
+        <section className="max-w-container mx-auto px-gutter mb-10 mt-8">
+          <h2 className="font-headline-md text-headline-md text-ink-black mb-5 butter-underline inline-block">
             Shop by Category
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
             {FEATURED_CATEGORIES.map((cat) => (
               <Link
                 key={cat.slug}
-                to={`/category/${cat.slug}`}
-                className="flex flex-col items-center gap-3 p-5 bg-white border border-ash rounded-xl hover:border-ink-black hover:-translate-y-0.5 hover:shadow-md transition-all duration-300 group"
+                to={cat.slug === 'all' ? '/catalog' : `/category/${cat.slug}`}
+                className="flex flex-col items-center gap-2 group"
               >
                 <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+                  className="w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-md"
                   style={{ backgroundColor: cat.color }}
                 >
-                  <span className="material-symbols-outlined text-2xl text-white">
+                  <span className="material-symbols-outlined text-2xl md:text-3xl text-white">
                     {cat.icon}
                   </span>
                 </div>
-                <span className="font-label-md text-label-md text-ink-black">{cat.name}</span>
+                <span className="font-sans text-[11px] md:text-label-md text-ink-black text-center font-medium">{cat.name}</span>
               </Link>
             ))}
           </div>
@@ -109,7 +130,7 @@ export default function LandingPage() {
 
         {/* Top Recommended */}
         <section className="max-w-container mx-auto px-gutter mb-10">
-          <h2 className="font-headline-md text-headline-md text-ink-black mb-5 butter-underline">
+          <h2 className="font-headline-md text-headline-md text-ink-black mb-5 butter-underline inline-block">
             Top Recommended
           </h2>
           <ProductGrid
@@ -124,7 +145,7 @@ export default function LandingPage() {
         {/* New Arrivals */}
         <section className="max-w-container mx-auto px-gutter mb-10">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-headline-md text-headline-md text-ink-black butter-underline">
+            <h2 className="font-headline-md text-headline-md text-ink-black butter-underline inline-block">
               New Arrivals
             </h2>
             <Link
@@ -142,6 +163,35 @@ export default function LandingPage() {
             onProductClick={setSelectedProduct}
           />
         </section>
+
+        {/* Individual Category Sections */}
+        {['iPhone', 'Samsung', 'Accessories', 'Gadgets', 'Others'].map((catName) => {
+          const catProducts = getProductsByCategory(catName);
+          const slug = catName.toLowerCase();
+          if (catProducts.length === 0 && !allProductsLoading) return null;
+          return (
+            <section key={catName} className="max-w-container mx-auto px-gutter mb-10">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="font-headline-md text-headline-md text-ink-black butter-underline inline-block">
+                  {catName}
+                </h2>
+                <Link
+                  to={`/category/${slug}`}
+                  className="font-label-sm text-label-sm text-smoke hover:text-ink-black transition-colors"
+                >
+                  View all
+                </Link>
+              </div>
+              <ProductGrid
+                products={catProducts}
+                loading={allProductsLoading}
+                onLike={handleLike}
+                onAddToCart={handleAddToCart}
+                onProductClick={setSelectedProduct}
+              />
+            </section>
+          );
+        })}
       </main>
 
       <ProductDetailModal
@@ -152,7 +202,7 @@ export default function LandingPage() {
       />
 
       <WhatsAppButton />
-      <InstagramButton />
+      <CallButton />
       <Footer />
     </div>
   );

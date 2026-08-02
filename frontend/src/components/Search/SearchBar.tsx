@@ -135,6 +135,10 @@ export default function SearchBar({
             setSelectedIndex(-1);
           }}
           onFocus={() => setIsFocused(true)}
+          onBlur={() => {
+            // Delay to allow click on suggestion to register
+            setTimeout(() => setIsFocused(false), 200);
+          }}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="flex-1 bg-transparent border-none outline-none font-sans text-body-sm text-charcoal placeholder:text-charcoal/50 min-w-0"
