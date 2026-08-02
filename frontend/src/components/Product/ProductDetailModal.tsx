@@ -196,7 +196,7 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
                 <div>
                   <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup & Takeaway Only</p>
                   <p className="font-sans text-caption text-[#856404] mt-0.5">
-                    Our store currently accepts in-store pickups & takeaways (no delivery option yet). Connect via WhatsApp or Instagram to confirm your order details!
+                    Our store currently accepts in-store pickups & takeaways (no delivery option yet). Connect via WhatsApp or Call to confirm your order details!
                   </p>
                 </div>
               </div>
@@ -212,13 +212,11 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
                   Order on WhatsApp
                 </a>
                 <a
-                  href={instagramUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#E1306C] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded hover:bg-[#c1275b] transition-colors"
+                  href="tel:+919666731286"
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#007AFF] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded hover:bg-[#0056b3] transition-colors"
                 >
-                  <span className="material-symbols-outlined text-lg">photo_camera</span>
-                  Order on Instagram
+                  <span className="material-symbols-outlined text-lg">call</span>
+                  Call Store Now
                 </a>
               </div>
             </div>
