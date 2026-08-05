@@ -11,7 +11,7 @@ import type { Product, ProductVariant } from '../types';
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { showToast, whatsappNumber } = useApp();
+  const { contactPhone, whatsappNumber } = useApp();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -273,18 +273,28 @@ export default function ProductDetailPage() {
               <div className="flex items-start gap-3 p-4 bg-butter-highlight/30 border border-butter-highlight rounded">
                 <span className="material-symbols-outlined text-lg text-smoke shrink-0 mt-0.5">info</span>
                 <p className="font-body-md text-body-md text-smoke">
-                  Store only accepts pickups/takeaways. Add to cart to inquire via WhatsApp about availability.
+                  Store only accepts pickups/takeaways. Message us on WhatsApp or call to inquire about availability.
                 </p>
               </div>
 
-              {/* Add to Cart */}
-              <button
-                onClick={handleAddToCart}
-                disabled={addingToCart || product.is_out_of_stock}
-                className="w-full bg-ink-black text-white font-label-sm text-label-sm px-6 py-3 rounded uppercase hover:bg-smoke transition-colors tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {addingToCart ? 'Opening WhatsApp...' : 'Add to Cart'}
-              </button>
+              {/* Contact Strip */}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <a
+                  href={`tel:${contactPhone.replace(/[^0-9+]/g, '')}`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#007AFF] text-white font-label-sm text-label-sm px-6 py-3 rounded uppercase hover:opacity-90 transition-opacity tracking-wider"
+                >
+                  <span className="material-symbols-outlined text-lg">call</span>
+                  Call to Inquire
+                </a>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={addingToCart || product.is_out_of_stock}
+                  className="flex-1 inline-flex items-center justify-center gap-2 bg-[#25D366] text-white font-label-sm text-label-sm px-6 py-3 rounded uppercase hover:opacity-90 transition-opacity tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="material-symbols-outlined text-lg">chat</span>
+                  {addingToCart ? 'Opening WhatsApp...' : 'WhatsApp Us'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
