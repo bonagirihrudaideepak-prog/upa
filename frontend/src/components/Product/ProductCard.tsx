@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { Product, ProductVariant } from '../../types';
 import { getImageUrl, formatLikes } from '../../utils/api';
 
@@ -5,10 +6,11 @@ interface ProductCardProps {
   product: Product;
   onLike: (id: number) => void;
   onAddToCart: (product: Product, variant?: ProductVariant) => void;
-  onClick: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onLike, onAddToCart, onClick }: ProductCardProps) {
+export default function ProductCard({ product, onLike, onAddToCart }: ProductCardProps) {
+  const navigate = useNavigate();
+
   const imageUrl = product.images?.[0] ? getImageUrl(product.images[0].image_path) : (product.main_image ? getImageUrl(product.main_image) : '');
 
   const colorVariants = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
@@ -18,19 +20,23 @@ export default function ProductCard({ product, onLike, onAddToCart, onClick }: P
     return acc;
   }, []) ?? [];
 
+  function handleOpen() {
+    navigate(`/product/${product.id}`);
+  }
+
   return (
     <div
       className="group relative bg-white border border-ash rounded-xl overflow-hidden hover:border-ink-black hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
-      onClick={() => onClick(product)}
-      role="button"
+      onClick={handleOpen}
+      role="link"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onClick(product);
+          handleOpen();
         }
       }}
-      aria-label={product.name}
+      aria-label={`View ${product.name}`}
     >
       {/* Card Header Badges */}
       <div className="aspect-square relative overflow-hidden bg-[#fbf8f6] p-4 flex items-center justify-center">

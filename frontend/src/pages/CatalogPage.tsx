@@ -7,7 +7,6 @@ import ScrollingDeals from '../components/Social/ScrollingDeals';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
 import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
-import ProductDetailModal from '../components/Product/ProductDetailModal';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
 import type { Product, Category, ProductVariant } from '../types';
@@ -31,7 +30,6 @@ export default function CatalogPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [sortBy, setSortBy] = useState<'newest' | 'price-asc' | 'price-desc' | 'popular'>('newest');
 
   const pageTitle = slug
@@ -175,17 +173,9 @@ export default function CatalogPage() {
             loading={loading}
             onLike={handleLike}
             onAddToCart={handleAddToCart}
-            onProductClick={setSelectedProduct}
           />
         </div>
       </main>
-
-      <ProductDetailModal
-        product={selectedProduct}
-        isOpen={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
-      />
 
       <WhatsAppButton />
       <CallButton />

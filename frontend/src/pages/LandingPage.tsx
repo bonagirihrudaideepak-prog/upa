@@ -5,7 +5,6 @@ import Footer from '../components/Layout/Footer';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
 import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
-import ProductDetailModal from '../components/Product/ProductDetailModal';
 import HeroBannerCarousel from '../components/Banner/HeroBannerCarousel';
 import { useApp } from '../context/AppContext';
 import { api } from '../utils/api';
@@ -31,7 +30,6 @@ export default function LandingPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [allProductsLoading, setAllProductsLoading] = useState(true);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const [isMobile, setIsMobile] = useState<boolean>(() => window.innerWidth < 768);
 
@@ -155,7 +153,6 @@ export default function LandingPage() {
             loading={featuredLoading}
             onLike={handleLike}
             onAddToCart={handleAddToCart}
-            onProductClick={setSelectedProduct}
           />
         </section>
 
@@ -177,7 +174,6 @@ export default function LandingPage() {
             loading={newArrivalsLoading}
             onLike={handleLike}
             onAddToCart={handleAddToCart}
-            onProductClick={setSelectedProduct}
           />
         </section>
 
@@ -204,19 +200,11 @@ export default function LandingPage() {
                 loading={allProductsLoading}
                 onLike={handleLike}
                 onAddToCart={handleAddToCart}
-                onProductClick={setSelectedProduct}
               />
             </section>
           );
         })}
       </main>
-
-      <ProductDetailModal
-        product={selectedProduct}
-        isOpen={!!selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-        onAddToCart={handleAddToCart}
-      />
 
       <WhatsAppButton />
       <CallButton />
