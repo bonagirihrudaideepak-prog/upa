@@ -6,6 +6,16 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:10000',
+        changeOrigin: true,
+      },
+      '/uploads': {
+        target: 'http://localhost:10000',
+        changeOrigin: true,
+      },
+    },
   },
   build: {
     outDir: 'dist',

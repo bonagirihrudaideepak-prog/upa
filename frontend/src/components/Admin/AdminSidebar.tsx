@@ -99,7 +99,14 @@ export default function AdminSidebar() {
           })}
         </nav>
 
-        <div className="p-3 border-t border-ash">
+        <div className="p-3 border-t border-ash space-y-1">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-4 py-3 rounded-full text-smoke hover:bg-[#f5f5f5] hover:text-ink-black transition-colors"
+          >
+            <span className="material-symbols-outlined text-xl">storefront</span>
+            <span className="font-sans text-body-sm">View Store</span>
+          </Link>
           <button
             onClick={handleSignOut}
             className="flex items-center gap-3 w-full px-4 py-3 rounded-full text-smoke hover:bg-[#f5f5f5] hover:text-ink-black transition-colors"

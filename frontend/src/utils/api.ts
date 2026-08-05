@@ -1,6 +1,6 @@
 import type { ApiResponse, Product, Offer, Category, DashboardStats, AdminUser } from '../types';
 
-const BASE_URL = import.meta.env.DEV ? 'http://localhost:8000' : '';
+const BASE_URL = '';
 
 export function getImageUrl(path: string): string {
   if (!path) return '';
