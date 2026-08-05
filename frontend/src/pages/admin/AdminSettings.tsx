@@ -35,7 +35,7 @@ export default function AdminSettings() {
     const res = await api.getSettings();
     if (res.success && res.data) {
       const s = res.data;
-      setStoreName(s.store_name || 'Upanishad Mobile Store');
+      setStoreName(s.store_name || 'Upanishad mobiles');
       setMarqueeText(s.marquee_text || '');
       setContactPhone(s.contact_phone || '');
       setWhatsappNumber(s.whatsapp_number || '');

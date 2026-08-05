@@ -20,7 +20,7 @@ interface SiteSettings {
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
-  storeName: 'Upanishad Mobile Store',
+  storeName: 'Upanishad mobiles',
   marqueeText: '⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡',
   contactPhone: '+91 96667 31286',
   whatsappNumber: '+919666731286',

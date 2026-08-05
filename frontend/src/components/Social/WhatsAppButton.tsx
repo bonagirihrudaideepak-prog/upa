@@ -21,7 +21,8 @@ export default function WhatsAppButton() {
         )}
         <a
           href={whatsappUrl}
-          target="_blank"
+          // FIXED: target="_self" for same tab navigation
+          target="_self" 
           rel="noopener noreferrer"
           aria-label="Chat on WhatsApp"
           className="flex items-center justify-center w-14 h-14 rounded-full bg-[#25D366] text-white hover:opacity-90 transition-opacity animate-[pulse_2s_ease-in-out_infinite]"

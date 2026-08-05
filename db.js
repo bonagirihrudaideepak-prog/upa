@@ -219,8 +219,8 @@ async function initDb() {
     const settingsCount = await db('site_settings').count('setting_key as count').first();
     if (!settingsCount || parseInt(settingsCount.count) === 0) {
       await db('site_settings').insert([
-        { setting_key: 'store_name', setting_value: 'Upanishad Mobile Store' },
-        { setting_key: 'marquee_text', setting_value: '⚡ Welcome to Upanishad Mobile Store! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡' },
+        { setting_key: 'store_name', setting_value: 'Upanishad mobiles' },
+        { setting_key: 'marquee_text', setting_value: '⚡ Welcome to Upanishad mobiles! Check our WhatsApp (+91 96667 31286) group & status for more deals & custom covers! ⚡' },
         { setting_key: 'contact_phone', setting_value: '+91 96667 31286' },
         { setting_key: 'whatsapp_number', setting_value: '+919666731286' },
         { setting_key: 'instagram_url', setting_value: 'https://www.instagram.com/upanishadmobiles/' },

@@ -1,6 +1,6 @@
-# 📱 Upanishad Mobile Store
+# 📱 Upanishad mobiles
 
-Welcome to the official repository for **Upanishad Mobile Store** — a modern, fast, and fully dynamic online storefront and admin management platform for smartphones, mobile covers, cases, and tech accessories.
+Welcome to the official repository for **Upanishad mobiles** — a modern, fast, and fully dynamic online storefront and admin management platform for smartphones, mobile covers, cases, and tech accessories.
 
 ---
 
