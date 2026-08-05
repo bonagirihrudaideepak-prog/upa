@@ -8,7 +8,7 @@ interface ProductCardProps {
   onClick: (product: Product) => void;
 }
 
-export default function ProductCard({ product, onLike, onAddToCart }: ProductCardProps) {
+export default function ProductCard({ product, onLike, onAddToCart, onClick }: ProductCardProps) {
   const imageUrl = product.images?.[0] ? getImageUrl(product.images[0].image_path) : (product.main_image ? getImageUrl(product.main_image) : '');
 
   const colorVariants = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {

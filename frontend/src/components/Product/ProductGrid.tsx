@@ -25,7 +25,7 @@ function SkeletonCard() {
   );
 }
 
-export default function ProductGrid({ products, onLike, onAddToCart, loading }: ProductGridProps) {
+export default function ProductGrid({ products, onLike, onAddToCart, onProductClick, loading }: ProductGridProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-gutter">
@@ -53,6 +53,7 @@ export default function ProductGrid({ products, onLike, onAddToCart, loading }: 
           product={product}
           onLike={onLike}
           onAddToCart={onAddToCart}
+          onClick={onProductClick}
         />
       ))}
     </div>
