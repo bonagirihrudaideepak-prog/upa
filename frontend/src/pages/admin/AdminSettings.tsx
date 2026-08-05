@@ -24,7 +24,7 @@ export default function AdminSettings() {
   const [heroSubtitle, setHeroSubtitle] = useState('');
 
   useEffect(() => {
-    const token = sessionStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token');
     if (!token) { navigate('/admin'); return; }
     loadSettings();
   }, [navigate]);

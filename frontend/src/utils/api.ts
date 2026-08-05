@@ -27,7 +27,7 @@ async function request<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<ApiResponse<T>> {
-  const token = sessionStorage.getItem('admin_token');
+  const token = localStorage.getItem('admin_token');
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
   };
@@ -120,7 +120,7 @@ export const api = {
   },
 
   adminLogout() {
-    sessionStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_token');
     return { success: true } as ApiResponse<null>;
   },
 

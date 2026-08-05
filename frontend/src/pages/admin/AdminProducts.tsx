@@ -15,7 +15,7 @@ export default function AdminProducts() {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token');
     if (!token) { navigate('/admin'); return; }
     loadProducts();
   }, [navigate]);

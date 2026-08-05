@@ -34,7 +34,7 @@ export default function AdminCategories() {
   const [autoSlug, setAutoSlug] = useState(true);
 
   useEffect(() => {
-    const token = sessionStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token');
     if (!token) { navigate('/admin'); return; }
     loadCategories();
   }, [navigate]);

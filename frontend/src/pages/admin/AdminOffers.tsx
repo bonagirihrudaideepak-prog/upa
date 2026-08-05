@@ -29,7 +29,7 @@ export default function AdminOffers() {
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
-    const token = sessionStorage.getItem('admin_token');
+    const token = localStorage.getItem('admin_token');
     if (!token) { navigate('/admin'); return; }
     loadOffers();
   }, [navigate]);
