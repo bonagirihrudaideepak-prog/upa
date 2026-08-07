@@ -11,6 +11,7 @@ import { api, getImageUrl } from '../utils/api';
 import type { Product, Offer, Category, ProductVariant } from '../types';
 
 const FEATURED_CATEGORY_FALLBACKS: Record<string, { icon: string; color: string }> = {
+  electronics: { icon: 'devices', color: '#5856D6' },
   iphone: { icon: 'phone_iphone', color: '#007AFF' },
   samsung: { icon: 'smartphone', color: '#1428A0' },
   accessories: { icon: 'headphones', color: '#FF6B35' },
