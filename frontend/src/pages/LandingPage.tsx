@@ -20,7 +20,7 @@ const FEATURED_CATEGORY_FALLBACKS: Record<string, { icon: string; color: string 
 };
 
 export default function LandingPage() {
-  const { showToast, whatsappNumber, heroTitle, heroSubtitle } = useApp();
+  const { showToast, whatsappNumber } = useApp();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(true);
   const [featured, setFeatured] = useState<Product[]>([]);
@@ -114,18 +114,6 @@ export default function LandingPage() {
       <Header />
 
       <main className="flex-1 w-full pt-24 md:pt-28 pb-12">
-        {/* Store Branding & Caption */}
-        <section className="max-w-container mx-auto px-gutter mb-6 text-center">
-          <p className="font-body-md text-body-md text-smoke mt-2 max-w-2xl mx-auto">
-            {heroTitle}
-          </p>
-          {heroSubtitle && (
-            <p className="font-sans text-caption md:text-body-sm text-smoke mt-1 uppercase tracking-widest">
-              {heroSubtitle}
-            </p>
-          )}
-        </section>
-
         {/* Hero Section */}
         <HeroBannerCarousel offers={offers} loading={offersLoading} />
 
