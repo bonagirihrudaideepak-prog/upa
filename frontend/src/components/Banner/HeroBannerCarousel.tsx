@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getImageUrl } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 import type { Offer } from '../../types';
 
 interface HeroBannerCarouselProps {
@@ -8,6 +9,7 @@ interface HeroBannerCarouselProps {
 }
 
 export default function HeroBannerCarousel({ offers, loading }: HeroBannerCarouselProps) {
+  const { whatsappNumber } = useApp();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
@@ -109,6 +111,22 @@ export default function HeroBannerCarousel({ offers, loading }: HeroBannerCarous
                 draggable={false}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-ink-black/80 via-ink-black/20 to-transparent pointer-events-none" />
+              {/* Top-Left Caption */}
+              {offer.caption_left && (
+                <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
+                  <span className="inline-block bg-ink-black/60 backdrop-blur-sm text-white font-sans text-label-sm md:text-label-md px-3 py-1.5 rounded-full">
+                    {offer.caption_left}
+                  </span>
+                </div>
+              )}
+              {/* Top-Right Caption */}
+              {offer.caption_right && (
+                <div className="absolute top-4 right-4 md:top-6 md:right-6 z-10">
+                  <span className="inline-block bg-ink-black/60 backdrop-blur-sm text-white font-sans text-label-sm md:text-label-md px-3 py-1.5 rounded-full">
+                    {offer.caption_right}
+                  </span>
+                </div>
+              )}
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
                 <h1 className="font-headline-lg md:font-display text-white butter-underline inline-block">
                   {offer.title || 'Modern Tech, Curated for You'}
@@ -121,7 +139,7 @@ export default function HeroBannerCarousel({ offers, loading }: HeroBannerCarous
               </div>
               {/* WhatsApp CTA */}
               <a
-                href={`https://wa.me/919666731286?text=${encodeURIComponent(`Hi! I saw the offer "${offer.title}" on your website. I'd like to claim it!`)}`}
+                href={`https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi! I saw the offer "${offer.title}" on your website. I'd like to claim it!`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="absolute bottom-6 right-6 md:bottom-8 md:right-8 z-10 flex items-center gap-2 bg-[#25D366] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-2.5 rounded-full hover:bg-[#20bd5a] transition-colors shadow-lg"

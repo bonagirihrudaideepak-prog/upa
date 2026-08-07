@@ -42,6 +42,8 @@ export interface Offer {
   description: string;
   image_path: string;
   link: string;
+  caption_left: string | null;
+  caption_right: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -51,6 +53,7 @@ export interface Category {
   name: string;
   slug: string;
   description: string;
+  image_path: string | null;
   is_active: boolean;
   display_order: number;
 }

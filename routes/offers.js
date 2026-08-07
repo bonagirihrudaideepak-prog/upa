@@ -32,7 +32,7 @@ router.get('/admin/offers', verifyAdmin, async (req, res) => {
 // Admin: Create offer
 router.post('/admin/offers', verifyAdmin, async (req, res) => {
   try {
-    const { title, description, image_path, link, is_active } = req.body || {};
+    const { title, description, image_path, link, is_active, caption_left, caption_right } = req.body || {};
     if (!title) return res.status(400).json({ error: 'Title is required' });
 
     const newOffer = {
@@ -40,6 +40,8 @@ router.post('/admin/offers', verifyAdmin, async (req, res) => {
       description: description || null,
       image_path: image_path || null,
       link: link || null,
+      caption_left: caption_left || null,
+      caption_right: caption_right || null,
       is_active: is_active !== false && is_active !== 'false' && is_active !== 0
     };
 
@@ -64,13 +66,15 @@ async function updateOfferHandler(req, res) {
     const existing = await db('offers').where('id', id).first();
     if (!existing) return res.status(404).json({ error: 'Offer not found' });
 
-    const { title, description, image_path, link, is_active } = req.body || {};
+    const { title, description, image_path, link, is_active, caption_left, caption_right } = req.body || {};
     const updates = {};
 
     if (title !== undefined) updates.title = title;
     if (description !== undefined) updates.description = description;
     if (image_path !== undefined) updates.image_path = image_path;
     if (link !== undefined) updates.link = link;
+    if (caption_left !== undefined) updates.caption_left = caption_left;
+    if (caption_right !== undefined) updates.caption_right = caption_right;
     if (is_active !== undefined) {
       updates.is_active = is_active === true || is_active === 'true' || is_active === 1 || is_active === '1';
     }

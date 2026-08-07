@@ -18,6 +18,8 @@ export default function AdminOffers() {
   const [formTitle, setFormTitle] = useState('');
   const [formDesc, setFormDesc] = useState('');
   const [formLink, setFormLink] = useState('');
+  const [formCaptionLeft, setFormCaptionLeft] = useState('');
+  const [formCaptionRight, setFormCaptionRight] = useState('');
   const [formActive, setFormActive] = useState(true);
   
   const [formImageFile, setFormImageFile] = useState<File | null>(null);
@@ -51,6 +53,8 @@ export default function AdminOffers() {
     setFormTitle('');
     setFormDesc('');
     setFormLink('');
+    setFormCaptionLeft('');
+    setFormCaptionRight('');
     setFormActive(true);
     setFormImageFile(null);
     setFormImageUrl('');
@@ -65,6 +69,8 @@ export default function AdminOffers() {
     setFormTitle(offer.title || '');
     setFormDesc(offer.description || '');
     setFormLink(offer.link || '');
+    setFormCaptionLeft(offer.caption_left || '');
+    setFormCaptionRight(offer.caption_right || '');
     setFormActive(offer.is_active);
     setFormImageFile(null);
     setFormImageUrl(offer.image_path || '');
@@ -120,6 +126,8 @@ export default function AdminOffers() {
       description: formDesc.trim(),
       image_path: finalImagePath || null,
       link: formLink.trim(),
+      caption_left: formCaptionLeft.trim() || null,
+      caption_right: formCaptionRight.trim() || null,
       is_active: formActive,
     };
 
@@ -361,6 +369,29 @@ export default function AdminOffers() {
                   placeholder="/catalog or /product/1 or WhatsApp link"
                   className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
                 />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Top-Left Caption Text</label>
+                  <input
+                    type="text"
+                    value={formCaptionLeft}
+                    onChange={(e) => setFormCaptionLeft(e.target.value)}
+                    placeholder="e.g. New Arrivals"
+                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                  />
+                </div>
+                <div>
+                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Top-Right Caption Text</label>
+                  <input
+                    type="text"
+                    value={formCaptionRight}
+                    onChange={(e) => setFormCaptionRight(e.target.value)}
+                    placeholder="e.g. Limited Time Offer"
+                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                  />
+                </div>
               </div>
 
               <label className="flex items-center gap-3 cursor-pointer pt-1">

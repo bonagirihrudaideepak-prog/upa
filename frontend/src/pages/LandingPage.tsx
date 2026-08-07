@@ -7,20 +7,19 @@ import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
 import HeroBannerCarousel from '../components/Banner/HeroBannerCarousel';
 import { useApp } from '../context/AppContext';
-import { api } from '../utils/api';
+import { api, getImageUrl } from '../utils/api';
 import type { Product, Offer, Category, ProductVariant } from '../types';
 
-const FEATURED_CATEGORIES = [
-  { name: 'iPhone', slug: 'iphone', icon: 'phone_iphone', color: '#007AFF' },
-  { name: 'Samsung', slug: 'samsung', icon: 'smartphone', color: '#1428A0' },
-  { name: 'Accessories', slug: 'accessories', icon: 'headphones', color: '#FF6B35' },
-  { name: 'Gadgets', slug: 'gadgets', icon: 'watch', color: '#34C759' },
-  { name: 'Others', slug: 'others', icon: 'devices_other', color: '#8E8E93' },
-  { name: 'All Brands', slug: 'all', icon: 'category', color: '#AF52DE' },
-];
+const FEATURED_CATEGORY_FALLBACKS: Record<string, { icon: string; color: string }> = {
+  iphone: { icon: 'phone_iphone', color: '#007AFF' },
+  samsung: { icon: 'smartphone', color: '#1428A0' },
+  accessories: { icon: 'headphones', color: '#FF6B35' },
+  gadgets: { icon: 'watch', color: '#34C759' },
+  others: { icon: 'devices_other', color: '#8E8E93' },
+};
 
 export default function LandingPage() {
-  const { showToast, whatsappNumber } = useApp();
+  const { showToast, whatsappNumber, storeName, heroTitle, heroSubtitle } = useApp();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(true);
   const [featured, setFeatured] = useState<Product[]>([]);
@@ -114,6 +113,21 @@ export default function LandingPage() {
       <Header />
 
       <main className="flex-1 w-full pt-24 md:pt-28 pb-12">
+        {/* Store Branding & Caption */}
+        <section className="max-w-container mx-auto px-gutter mb-6 text-center">
+          <h1 className="font-serif text-headline-lg md:font-display text-ink-black tracking-tight">
+            {storeName}
+          </h1>
+          <p className="font-body-md text-body-md text-smoke mt-2 max-w-2xl mx-auto">
+            {heroTitle}
+          </p>
+          {heroSubtitle && (
+            <p className="font-sans text-caption md:text-body-sm text-smoke mt-1 uppercase tracking-widest">
+              {heroSubtitle}
+            </p>
+          )}
+        </section>
+
         {/* Hero Section */}
         <HeroBannerCarousel offers={offers} loading={offersLoading} />
 
@@ -123,23 +137,31 @@ export default function LandingPage() {
             Shop by Category
           </h2>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
-            {FEATURED_CATEGORIES.map((cat) => (
-              <Link
-                key={cat.slug}
-                to={cat.slug === 'all' ? '/catalog' : `/category/${cat.slug}`}
-                className="flex flex-col items-center gap-2 group"
-              >
-                <div
-                  className="w-16 h-16 md:w-20 md:h-20 aspect-square rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-md overflow-hidden"
-                  style={{ backgroundColor: cat.color }}
+            {categories.map((cat) => {
+              const fallback = FEATURED_CATEGORY_FALLBACKS[cat.slug] || { icon: 'category', color: '#AF52DE' };
+              const imgUrl = cat.image_path ? getImageUrl(cat.image_path) : '';
+              return (
+                <Link
+                  key={cat.id}
+                  to={`/category/${cat.slug}`}
+                  className="flex flex-col items-center gap-2 group"
                 >
-                  <span className="material-symbols-outlined text-2xl md:text-3xl text-white">
-                    {cat.icon}
-                  </span>
-                </div>
-                <span className="font-sans text-[11px] md:text-label-md text-ink-black text-center font-medium">{cat.name}</span>
-              </Link>
-            ))}
+                  <div
+                    className="w-16 h-16 md:w-20 md:h-20 aspect-square rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110 shadow-md overflow-hidden"
+                    style={imgUrl ? undefined : { backgroundColor: fallback.color }}
+                  >
+                    {imgUrl ? (
+                      <img src={imgUrl} alt={cat.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-2xl md:text-3xl text-white">
+                        {fallback.icon}
+                      </span>
+                    )}
+                  </div>
+                  <span className="font-sans text-[11px] md:text-label-md text-ink-black text-center font-medium">{cat.name}</span>
+                </Link>
+              );
+            })}
           </div>
         </section>
 

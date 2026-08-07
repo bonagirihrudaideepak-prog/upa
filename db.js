@@ -88,6 +88,23 @@ function getDbConfig() {
 
 let db = knex(getDbConfig());
 
+async function ensureColumn(table, column, type) {
+  try {
+    const cols = await db(table).columnInfo();
+    if (!cols[column]) {
+      await db.schema.table(table, (t) => {
+        if (type === 'text') t.text(column);
+        else if (type === 'string') t.string(column, 255);
+        else if (type === 'integer') t.integer(column);
+        else t.text(column);
+      });
+      console.log(`[DB] Added "${column}" column to "${table}" table`);
+    }
+  } catch (err) {
+    console.error(`[DB] Error ensuring "${column}" on "${table}":`, err.message || err);
+  }
+}
+
 async function initDb() {
   try {
     // 1. Categories
@@ -103,6 +120,9 @@ async function initDb() {
       });
       console.log('[DB] Created "categories" table');
     }
+
+    // Add optional category image column if missing (for existing databases)
+    await ensureColumn('categories', 'image_path', 'string');
 
     // 2. Products
     if (!(await db.schema.hasTable('products'))) {
@@ -170,6 +190,10 @@ async function initDb() {
       console.log('[DB] Created "offers" table');
     }
 
+    // Add optional offer caption columns if missing (for existing databases)
+    await ensureColumn('offers', 'caption_left', 'text');
+    await ensureColumn('offers', 'caption_right', 'text');
+
     // 6. Reviews
     if (!(await db.schema.hasTable('reviews'))) {
       await db.schema.createTable('reviews', table => {
@@ -225,6 +249,11 @@ async function initDb() {
         { setting_key: 'whatsapp_number', setting_value: '+919666731286' },
         { setting_key: 'instagram_url', setting_value: 'https://www.instagram.com/upanishadmobiles/' },
         { setting_key: 'location_map_url', setting_value: 'https://maps.app.goo.gl/JRej6So64iYYm7ia6' },
+        { setting_key: 'store_address', setting_value: 'Upanishad mobiles, Mobile Point Road, Visakhapatnam, Andhra Pradesh, India' },
+        { setting_key: 'contact_email', setting_value: 'upanishadmobiles@gmail.com' },
+        { setting_key: 'facebook_url', setting_value: '' },
+        { setting_key: 'youtube_url', setting_value: '' },
+        { setting_key: 'about_content', setting_value: 'Upanishad mobiles is a trusted local mobile store offering premium smartphones, cases, covers, tempered glass and accessories. We are located in Visakhapatnam and offer store pickup & takeaway only. Message us on WhatsApp for the latest deals and custom phone covers!' },
         { setting_key: 'hero_title', setting_value: 'Modern Tech, Curated for You' },
         { setting_key: 'hero_subtitle', setting_value: 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories' },
         { setting_key: 'footer_subtitle', setting_value: 'Store Pickup Only • Premium Smartphones, Cases & Accessories' }

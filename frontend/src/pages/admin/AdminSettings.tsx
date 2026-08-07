@@ -19,6 +19,11 @@ export default function AdminSettings() {
   const [contactPhone, setContactPhone] = useState('');
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [instagramUrl, setInstagramUrl] = useState('');
+  const [facebookUrl, setFacebookUrl] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [storeAddress, setStoreAddress] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [aboutContent, setAboutContent] = useState('');
   const [locationMapUrl, setLocationMapUrl] = useState('');
   const [heroTitle, setHeroTitle] = useState('');
   const [heroSubtitle, setHeroSubtitle] = useState('');
@@ -40,6 +45,11 @@ export default function AdminSettings() {
       setContactPhone(s.contact_phone || '');
       setWhatsappNumber(s.whatsapp_number || '');
       setInstagramUrl(s.instagram_url || '');
+      setFacebookUrl(s.facebook_url || '');
+      setYoutubeUrl(s.youtube_url || '');
+      setStoreAddress(s.store_address || '');
+      setContactEmail(s.contact_email || '');
+      setAboutContent(s.about_content || '');
       setLocationMapUrl(s.location_map_url || '');
       setHeroTitle(s.hero_title || '');
       setHeroSubtitle(s.hero_subtitle || '');
@@ -61,6 +71,11 @@ export default function AdminSettings() {
       contact_phone: contactPhone.trim(),
       whatsapp_number: whatsappNumber.trim(),
       instagram_url: instagramUrl.trim(),
+      facebook_url: facebookUrl.trim(),
+      youtube_url: youtubeUrl.trim(),
+      store_address: storeAddress.trim(),
+      contact_email: contactEmail.trim(),
+      about_content: aboutContent.trim(),
       location_map_url: locationMapUrl.trim(),
       hero_title: heroTitle.trim(),
       hero_subtitle: heroSubtitle.trim(),
@@ -202,6 +217,58 @@ export default function AdminSettings() {
 
               <div>
                 <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Facebook Page Link
+                </label>
+                <input
+                  type="text"
+                  value={facebookUrl}
+                  onChange={(e) => setFacebookUrl(e.target.value)}
+                  placeholder="https://www.facebook.com/yourpage"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  YouTube Channel Link
+                </label>
+                <input
+                  type="text"
+                  value={youtubeUrl}
+                  onChange={(e) => setYoutubeUrl(e.target.value)}
+                  placeholder="https://www.youtube.com/@yourchannel"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Store Email Address
+                </label>
+                <input
+                  type="text"
+                  value={contactEmail}
+                  onChange={(e) => setContactEmail(e.target.value)}
+                  placeholder="upanishadmobiles@gmail.com"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Full Store Address
+                </label>
+                <textarea
+                  value={storeAddress}
+                  onChange={(e) => setStoreAddress(e.target.value)}
+                  rows={2}
+                  placeholder="Street, Area, City, State, PIN"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
                   Google Maps Store Location Link
                 </label>
                 <input
@@ -210,6 +277,23 @@ export default function AdminSettings() {
                   onChange={(e) => setLocationMapUrl(e.target.value)}
                   placeholder="https://maps.app.goo.gl/..."
                   className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+            </div>
+
+            {/* About Us Page Content */}
+            <div className="bg-white border border-ash rounded p-5 space-y-5">
+              <h2 className="font-serif text-title-md text-ink-black">About Us Page</h2>
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  About Us Content (shown on /about)
+                </label>
+                <textarea
+                  value={aboutContent}
+                  onChange={(e) => setAboutContent(e.target.value)}
+                  rows={6}
+                  placeholder="Write a description of your store here..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none"
                 />
               </div>
             </div>

@@ -13,6 +13,14 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const { contactPhone, whatsappNumber } = useApp();
 
+  function goBack() {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/catalog');
+    }
+  }
+
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -119,7 +127,7 @@ export default function ProductDetailPage() {
               {error || 'Could not load product details. Please try again.'}
             </p>
             <button
-              onClick={() => navigate(-1)}
+              onClick={goBack}
               className="inline-flex items-center gap-2 font-label-sm text-label-sm text-smoke hover:text-ink-black transition-colors"
             >
               <span className="material-symbols-outlined text-lg">arrow_back</span>
@@ -149,7 +157,7 @@ export default function ProductDetailPage() {
         <div className="max-w-container mx-auto px-gutter">
           {/* Back Button */}
           <button
-            onClick={() => navigate(-1)}
+            onClick={goBack}
             className="flex items-center gap-1 font-label-sm text-label-sm text-smoke hover:text-ink-black transition-colors mb-6"
             aria-label="Go back"
           >

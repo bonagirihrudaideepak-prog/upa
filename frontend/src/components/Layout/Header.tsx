@@ -98,16 +98,6 @@ export default function Header() {
 
           {/* Desktop Laptop View Categories Navigation */}
           <nav className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
-            <Link
-              to="/catalog"
-              className={`shrink-0 font-sans text-label-sm font-semibold px-3 py-1.5 rounded-full border transition-all ${
-                !activeSlug
-                  ? 'bg-ink-black border-ink-black text-white shadow-sm'
-                  : 'bg-white border-ash text-smoke hover:text-ink-black hover:border-ink-black'
-              }`}
-            >
-              All Products
-            </Link>
             {categories.map((cat) => (
               <Link
                 key={cat.id}
@@ -121,6 +111,16 @@ export default function Header() {
                 {cat.name}
               </Link>
             ))}
+            <Link
+              to="/catalog"
+              className={`shrink-0 font-sans text-label-sm font-semibold px-3 py-1.5 rounded-full border transition-all ${
+                !activeSlug
+                  ? 'bg-ink-black border-ink-black text-white shadow-sm'
+                  : 'bg-white border-ash text-smoke hover:text-ink-black hover:border-ink-black'
+              }`}
+            >
+              All Products
+            </Link>
           </nav>
         </div>
       </header>

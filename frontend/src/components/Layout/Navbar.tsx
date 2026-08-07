@@ -37,16 +37,6 @@ export default function Navbar({ categories, loading }: NavbarProps) {
         ref={scrollRef}
         className="flex items-center gap-2 overflow-x-auto scrollbar-hide px-gutter py-2.5 max-w-container mx-auto"
       >
-        <Link
-          to="/catalog"
-          className={`shrink-0 font-sans text-label-sm font-semibold px-4 py-1.5 rounded-full border transition-all ${
-            !activeSlug
-              ? 'bg-ink-black border-ink-black text-white shadow-sm'
-              : 'bg-white border-ash text-smoke hover:text-ink-black hover:border-ink-black'
-          }`}
-        >
-          All Products
-        </Link>
         {categories.map((cat) => (
           <Link
             key={cat.id}
@@ -60,6 +50,16 @@ export default function Navbar({ categories, loading }: NavbarProps) {
             {cat.name}
           </Link>
         ))}
+        <Link
+          to="/catalog"
+          className={`shrink-0 font-sans text-label-sm font-semibold px-4 py-1.5 rounded-full border transition-all ${
+            !activeSlug
+              ? 'bg-ink-black border-ink-black text-white shadow-sm'
+              : 'bg-white border-ash text-smoke hover:text-ink-black hover:border-ink-black'
+          }`}
+        >
+          All Products
+        </Link>
       </div>
     </div>
   );

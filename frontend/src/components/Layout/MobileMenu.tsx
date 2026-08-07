@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../Search/SearchBar';
+import { useApp } from '../../context/AppContext';
 
 interface MobileMenuProps {
   open: boolean;
@@ -9,6 +10,8 @@ interface MobileMenuProps {
 
 export default function MobileMenu({ open, onClose }: MobileMenuProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
+  const { whatsappNumber, contactPhone, instagramUrl } = useApp();
+  const waDigits = whatsappNumber.replace(/[^0-9]/g, '');
 
   useEffect(() => {
     if (open) {
@@ -137,6 +140,20 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
               >
                 Offers
               </Link>
+              <Link
+                to="/about"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                About Us
+              </Link>
+              <Link
+                to="/contact"
+                onClick={onClose}
+                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+              >
+                Contact Us
+              </Link>
             </div>
 
             <hr className="border-ash my-4" />
@@ -144,7 +161,7 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
             {/* Contact */}
             <div className="flex flex-col gap-1">
               <a
-                href="https://wa.me/919666731286"
+                href={`https://wa.me/${waDigits}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={onClose}
@@ -154,7 +171,7 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
                 Chat on WhatsApp
               </a>
               <a
-                href="tel:+919666731286"
+                href={`tel:${contactPhone.replace(/[^0-9+]/g, '')}`}
                 onClick={onClose}
                 className="flex items-center gap-3 font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors font-medium"
               >
@@ -162,7 +179,7 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
                 Call Us
               </a>
               <a
-                href="https://www.instagram.com/upanishadmobiles/"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={onClose}

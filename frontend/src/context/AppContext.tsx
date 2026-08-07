@@ -14,6 +14,11 @@ interface SiteSettings {
   contactPhone: string;
   whatsappNumber: string;
   instagramUrl: string;
+  facebookUrl: string;
+  youtubeUrl: string;
+  storeAddress: string;
+  contactEmail: string;
+  aboutContent: string;
   locationMapUrl: string;
   heroTitle: string;
   heroSubtitle: string;
@@ -25,6 +30,11 @@ const DEFAULT_SETTINGS: SiteSettings = {
   contactPhone: '+91 96667 31286',
   whatsappNumber: '+919666731286',
   instagramUrl: 'https://www.instagram.com/upanishadmobiles/',
+  facebookUrl: '',
+  youtubeUrl: '',
+  storeAddress: '',
+  contactEmail: '',
+  aboutContent: '',
   locationMapUrl: 'https://maps.app.goo.gl/JRej6So64iYYm7ia6',
   heroTitle: 'Modern Tech, Curated for You',
   heroSubtitle: 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories',
@@ -67,6 +77,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
           contactPhone: s.contact_phone || prev.contactPhone,
           whatsappNumber: s.whatsapp_number || prev.whatsappNumber,
           instagramUrl: s.instagram_url || prev.instagramUrl,
+          facebookUrl: s.facebook_url || prev.facebookUrl,
+          youtubeUrl: s.youtube_url || prev.youtubeUrl,
+          storeAddress: s.store_address || prev.storeAddress,
+          contactEmail: s.contact_email || prev.contactEmail,
+          aboutContent: s.about_content || prev.aboutContent,
           locationMapUrl: s.location_map_url || prev.locationMapUrl,
           heroTitle: s.hero_title || prev.heroTitle,
           heroSubtitle: s.hero_subtitle || prev.heroSubtitle,

@@ -43,7 +43,7 @@ router.get('/admin/categories', verifyAdmin, async (req, res) => {
 // Admin: Create category
 router.post('/admin/categories', verifyAdmin, async (req, res) => {
   try {
-    const { name, slug, description, display_order, is_active } = req.body || {};
+    const { name, slug, description, display_order, is_active, image_path } = req.body || {};
     if (!name) return res.status(400).json({ error: 'Category name is required' });
 
     const categorySlug = slug || slugify(name);
@@ -51,6 +51,7 @@ router.post('/admin/categories', verifyAdmin, async (req, res) => {
       name,
       slug: categorySlug,
       description: description || null,
+      image_path: image_path || null,
       display_order: parseInt(display_order || '0'),
       is_active: is_active !== false && is_active !== 'false' && is_active !== 0
     };
@@ -73,12 +74,13 @@ router.put('/admin/categories/:id', verifyAdmin, async (req, res) => {
     const existing = await db('categories').where('id', id).first();
     if (!existing) return res.status(404).json({ error: 'Category not found' });
 
-    const { name, slug, description, display_order, is_active } = req.body || {};
+    const { name, slug, description, display_order, is_active, image_path } = req.body || {};
     const updates = {};
 
     if (name !== undefined) updates.name = name;
     if (slug !== undefined) updates.slug = slug;
     if (description !== undefined) updates.description = description;
+    if (image_path !== undefined) updates.image_path = image_path;
     if (display_order !== undefined) updates.display_order = parseInt(display_order || '0');
     if (is_active !== undefined) {
       updates.is_active = is_active === true || is_active === 'true' || is_active === 1 || is_active === '1';
