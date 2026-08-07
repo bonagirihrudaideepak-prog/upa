@@ -44,6 +44,8 @@ export interface Offer {
   link: string;
   caption_left: string | null;
   caption_right: string | null;
+  text_top: string | null;
+  text_bottom: string | null;
   is_active: boolean;
   created_at: string;
 }

@@ -193,6 +193,8 @@ async function initDb() {
     // Add optional offer caption columns if missing (for existing databases)
     await ensureColumn('offers', 'caption_left', 'text');
     await ensureColumn('offers', 'caption_right', 'text');
+    await ensureColumn('offers', 'text_top', 'text');
+    await ensureColumn('offers', 'text_bottom', 'text');
 
     // 6. Reviews
     if (!(await db.schema.hasTable('reviews'))) {

@@ -20,6 +20,8 @@ export default function AdminOffers() {
   const [formLink, setFormLink] = useState('');
   const [formCaptionLeft, setFormCaptionLeft] = useState('');
   const [formCaptionRight, setFormCaptionRight] = useState('');
+  const [formTopText, setFormTopText] = useState('');
+  const [formBottomText, setFormBottomText] = useState('');
   const [formActive, setFormActive] = useState(true);
   
   const [formImageFile, setFormImageFile] = useState<File | null>(null);
@@ -55,6 +57,8 @@ export default function AdminOffers() {
     setFormLink('');
     setFormCaptionLeft('');
     setFormCaptionRight('');
+    setFormTopText('');
+    setFormBottomText('');
     setFormActive(true);
     setFormImageFile(null);
     setFormImageUrl('');
@@ -71,6 +75,8 @@ export default function AdminOffers() {
     setFormLink(offer.link || '');
     setFormCaptionLeft(offer.caption_left || '');
     setFormCaptionRight(offer.caption_right || '');
+    setFormTopText(offer.text_top || '');
+    setFormBottomText(offer.text_bottom || '');
     setFormActive(offer.is_active);
     setFormImageFile(null);
     setFormImageUrl(offer.image_path || '');
@@ -128,6 +134,8 @@ export default function AdminOffers() {
       link: formLink.trim(),
       caption_left: formCaptionLeft.trim() || null,
       caption_right: formCaptionRight.trim() || null,
+      text_top: formTopText.trim() || null,
+      text_bottom: formBottomText.trim() || null,
       is_active: formActive,
     };
 
@@ -392,6 +400,28 @@ export default function AdminOffers() {
                     className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Top Text Area</label>
+                <textarea
+                  value={formTopText}
+                  onChange={(e) => setFormTopText(e.target.value)}
+                  placeholder="Text displayed at the top of the banner..."
+                  rows={2}
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Bottom Text Area</label>
+                <textarea
+                  value={formBottomText}
+                  onChange={(e) => setFormBottomText(e.target.value)}
+                  placeholder="Text displayed at the bottom of the banner..."
+                  rows={2}
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none"
+                />
               </div>
 
               <label className="flex items-center gap-3 cursor-pointer pt-1">

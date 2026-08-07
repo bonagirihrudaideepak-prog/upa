@@ -107,10 +107,25 @@ export default function HeroBannerCarousel({ offers, loading }: HeroBannerCarous
               <img
                 src={getImageUrl(offer.image_path)}
                 alt={offer.title || ''}
-                className="w-full h-full object-contain bg-ink-black select-none pointer-events-none"
+                className="w-full h-full object-cover bg-cream-paper select-none pointer-events-none"
                 draggable={false}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-ink-black/80 via-ink-black/20 to-transparent pointer-events-none" />
+              {/* Top Text Area */}
+              {offer.text_top && (
+                <div className="absolute top-4 md:top-6 left-1/2 -translate-x-1/2 z-10 max-w-[92%] text-center pointer-events-none">
+                  <p className="inline-block bg-ink-black/60 backdrop-blur-sm text-white font-sans text-label-sm md:text-label-md px-4 py-2 rounded-lg whitespace-pre-line">
+                    {offer.text_top}
+                  </p>
+                </div>
+              )}
+              {/* Bottom Text Area */}
+              {offer.text_bottom && (
+                <div className="absolute bottom-20 md:bottom-24 left-1/2 -translate-x-1/2 z-10 max-w-[92%] text-center pointer-events-none">
+                  <p className="inline-block bg-ink-black/60 backdrop-blur-sm text-white font-sans text-label-sm md:text-label-md px-4 py-2 rounded-lg whitespace-pre-line">
+                    {offer.text_bottom}
+                  </p>
+                </div>
+              )}
               {/* Top-Left Caption */}
               {offer.caption_left && (
                 <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
@@ -128,11 +143,11 @@ export default function HeroBannerCarousel({ offers, loading }: HeroBannerCarous
                 </div>
               )}
               <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-                <h1 className="font-headline-lg md:font-display text-white butter-underline inline-block">
+                <h1 className="font-headline-lg md:font-display text-white butter-underline inline-block" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.55)' }}>
                   {offer.title || 'Modern Tech, Curated for You'}
                 </h1>
                 {offer.description && (
-                  <p className="font-body-md text-body-md text-white/80 mt-2 max-w-xl">
+                  <p className="font-body-md text-body-md text-white/90 mt-2 max-w-xl" style={{ textShadow: '0 2px 6px rgba(0,0,0,0.55)' }}>
                     {offer.description}
                   </p>
                 )}
