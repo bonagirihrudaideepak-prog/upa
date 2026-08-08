@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
@@ -8,6 +8,7 @@ import WhatsAppButton from '../components/Social/WhatsAppButton';
 import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
 import { useApp } from '../context/AppContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { api } from '../utils/api';
 import type { Product, Category, ProductVariant } from '../types';
 
@@ -45,32 +46,32 @@ export default function CatalogPage() {
     });
   }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-
-    async function fetchProducts() {
-      let res;
-      if (slug) {
-        res = await api.getProductsByCategory(slug);
-      } else if (query) {
-        res = await api.searchProducts(query);
-      } else {
-        res = await api.getProducts();
-      }
-      if (cancelled) return;
-      if (res.success && res.data) {
-        setProducts(res.data);
-      } else {
-        setProducts([]);
-        if (res.error) showToast(res.error, 'error');
-      }
-      setLoading(false);
+  const fetchProducts = useCallback(async () => {
+    let res;
+    if (slug) {
+      res = await api.getProductsByCategory(slug);
+    } else if (query) {
+      res = await api.searchProducts(query);
+    } else {
+      res = await api.getProducts();
     }
-
-    fetchProducts();
-    return () => { cancelled = true; };
+    if (res.success && res.data) {
+      setProducts(res.data);
+    } else if (res.error) {
+      showToast(res.error, 'error');
+    }
   }, [slug, query, showToast]);
+
+  useEffect(() => {
+    setLoading(true);
+    void fetchProducts().finally(() => setLoading(false));
+  }, [fetchProducts]);
+
+  // Live refresh: newly added products show up automatically
+  useAutoRefresh(() => {
+    setLoading(false);
+    return fetchProducts();
+  }, 20000);
 
   function handleAddToCart(product: Product, _variant?: ProductVariant) {
     const num = whatsappNumber.replace(/[^0-9]/g, '');

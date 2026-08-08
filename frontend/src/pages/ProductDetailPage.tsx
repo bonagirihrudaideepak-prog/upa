@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
 import WhatsAppButton from '../components/Social/WhatsAppButton';
 import CallButton from '../components/Social/CallButton';
 import { useApp } from '../context/AppContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { api, getImageUrl, formatLikes } from '../utils/api';
 import type { Product, ProductVariant } from '../types';
 
@@ -32,25 +33,32 @@ export default function ProductDetailPage() {
   const [liking, setLiking] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  const fetchProduct = useCallback(async () => {
+    if (!id) return;
+    setLoading(true);
+    setError(null);
+    const res = await api.getProduct(id);
+    if (res.success && res.data) {
+      setProduct(res.data);
+      setLikesCount(res.data.likes_count);
+    } else {
+      setError(res.error ?? 'Product not found');
+    }
+    setLoading(false);
+  }, [id]);
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    api.getProduct(id).then((res) => {
+    (async () => {
+      await fetchProduct();
       if (cancelled) return;
-      if (res.success && res.data) {
-        setProduct(res.data);
-        setLikesCount(res.data.likes_count);
-      } else {
-        setError(res.error ?? 'Product not found');
-      }
-      setLoading(false);
-    });
-
+    })();
     return () => { cancelled = true; };
-  }, [id]);
+  }, [id, fetchProduct]);
+
+  // Auto-refresh stock/price updates without reloading the page
+  useAutoRefresh(fetchProduct, 20000);
 
   useEffect(() => {
     if (product) {
@@ -147,7 +155,12 @@ export default function ProductDetailPage() {
     }
     return acc;
   }, []) ?? [];
-  const uniqueModels = [...new Set(product.variants?.map((v) => v.model) ?? [])];
+  // Merge the admin-defined product models (dropdown list) with any models from color variants,
+  // deduplicated, so the "Select Model" dropdown always reflects everything available.
+  const uniqueModels = [...new Set([
+    ...(product.models ?? []),
+    ...(product.variants?.map((v) => v.model).filter(Boolean) ?? []),
+  ])];
 
   return (
     <div className="min-h-screen flex flex-col bg-cream-paper">

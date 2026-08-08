@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useApp } from '../../context/AppContext';
 
 export default function Footer() {
@@ -11,7 +12,21 @@ export default function Footer() {
     contactEmail,
     locationMapUrl,
     storeName,
+    seoKeywords,
   } = useApp();
+
+  // Inject SEO keywords + store name into the document meta tags for better search indexing.
+  useEffect(() => {
+    let meta = document.querySelector<HTMLMetaElement>('meta[name="keywords"]');
+    if (seoKeywords.trim()) {
+      if (!meta) {
+        meta = document.createElement('meta');
+        meta.name = 'keywords';
+        document.head.appendChild(meta);
+      }
+      meta.content = seoKeywords.trim();
+    }
+  }, [seoKeywords]);
 
   const socialLinks = [
     { name: 'Instagram', url: instagramUrl, icon: 'photo_camera', color: 'text-[#E1306C]', available: !!instagramUrl },
@@ -119,6 +134,15 @@ export default function Footer() {
             Store Takeaway &amp; Pickup Orders Only
           </p>
         </div>
+
+        {/* SEO Keywords */}
+        {seoKeywords.trim() && (
+          <div className="mt-8 pt-6 border-t border-ash">
+            <p className="font-sans text-caption text-smoke text-center leading-relaxed whitespace-pre-line">
+              {seoKeywords.trim()}
+            </p>
+          </div>
+        )}
       </div>
     </footer>
   );

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
 
 export default function AdminLogin() {
@@ -91,6 +91,13 @@ export default function AdminLogin() {
         <p className="font-sans text-caption text-smoke text-center mt-4">
           Authorized personnel only
         </p>
+        <Link
+          to="/"
+          className="mt-6 flex items-center justify-center gap-1 font-sans text-label-sm text-smoke hover:text-[#004ac6] transition-colors"
+        >
+          <span className="material-symbols-outlined text-lg">storefront</span>
+          Back to Store
+        </Link>
       </div>
     </div>
   );

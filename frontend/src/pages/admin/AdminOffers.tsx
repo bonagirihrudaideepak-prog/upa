@@ -458,7 +458,7 @@ export default function AdminOffers() {
       {/* Delete Confirmation Modal */}
       {deleteId !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white border border-ash rounded-xl p-6 max-w-sm w-full shadow-xl">
+          <div className="bg-white border border-ash rounded-xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto shadow-xl">
             <h3 className="font-serif text-title-md text-ink-black mb-2">Delete Banner</h3>
             <p className="font-sans text-body-sm text-smoke mb-5">Are you sure you want to delete this promotional banner?</p>
             <div className="flex items-center justify-end gap-3">

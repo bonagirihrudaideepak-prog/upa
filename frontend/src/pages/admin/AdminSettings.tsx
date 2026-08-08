@@ -27,6 +27,7 @@ export default function AdminSettings() {
   const [locationMapUrl, setLocationMapUrl] = useState('');
   const [heroTitle, setHeroTitle] = useState('');
   const [heroSubtitle, setHeroSubtitle] = useState('');
+  const [seoKeywords, setSeoKeywords] = useState('');
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
@@ -53,6 +54,7 @@ export default function AdminSettings() {
       setLocationMapUrl(s.location_map_url || '');
       setHeroTitle(s.hero_title || '');
       setHeroSubtitle(s.hero_subtitle || '');
+      setSeoKeywords(s.seo_keywords || '');
     } else {
       setError(res.error || 'Failed to load site settings');
     }
@@ -79,6 +81,7 @@ export default function AdminSettings() {
       location_map_url: locationMapUrl.trim(),
       hero_title: heroTitle.trim(),
       hero_subtitle: heroSubtitle.trim(),
+      seo_keywords: seoKeywords.trim(),
     };
 
     const res = await api.updateSettings(payload);
@@ -326,6 +329,26 @@ export default function AdminSettings() {
                   placeholder="Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories"
                   className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
                 />
+              </div>
+            </div>
+
+            {/* SEO Section */}
+            <div className="bg-white border border-ash rounded p-5 space-y-5">
+              <h2 className="font-serif text-title-md text-ink-black">Search Engine Optimization (SEO)</h2>
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  SEO Keywords
+                </label>
+                <textarea
+                  value={seoKeywords}
+                  onChange={(e) => setSeoKeywords(e.target.value)}
+                  rows={3}
+                  placeholder="Comma-separated keywords, e.g. mobile shop Visakhapatnam, phone covers, iPhone cases, tempered glass, new arrival mobiles..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-y"
+                />
+                <p className="font-sans text-caption text-smoke mt-1.5">
+                  These keywords display at the bottom of every page (below the footer) and are injected into the page's SEO meta tags to help search engines understand your store.
+                </p>
               </div>
             </div>
 

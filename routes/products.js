@@ -67,13 +67,15 @@ router.get('/products/featured', async (req, res) => {
   }
 });
 
-// 2. New Arrivals
+// 2. New Arrivals (auto-rotating: always the most recently added products, capped at 12).
+//    No manual flag needed — the newest uploaded products show here and older ones
+//    naturally fade out as newer items are added.
 router.get('/products/new-arrivals', async (req, res) => {
   try {
     const products = await db('products')
-      .where('is_new_arrival', true)
-      .orWhere('is_new_arrival', 1)
-      .orderBy('created_at', 'desc');
+      .orderBy('created_at', 'desc')
+      .orderBy('id', 'desc')
+      .limit(12);
     const result = await attachImagesAndVariants(products);
     res.json(result);
   } catch (err) {
@@ -346,6 +348,7 @@ router.post('/admin/products', verifyAdmin, upload.array('images[]'), async (req
       price: parseFloat(price),
       category,
       stock: parseInt(stock || '0'),
+      models: body.models || null,
       is_featured: is_featured === 'true' || is_featured === true || is_featured === '1' || is_featured === 1,
       is_new_arrival: is_new_arrival === 'true' || is_new_arrival === true || is_new_arrival === '1' || is_new_arrival === 1,
       is_offer: is_offer === 'true' || is_offer === true || is_offer === '1' || is_offer === 1,
@@ -431,7 +434,7 @@ async function updateProductHandler(req, res) {
     const body = req.body || {};
     const updates = {};
 
-    const allowed = ['name', 'description', 'sku', 'price', 'category', 'stock', 'is_featured', 'is_new_arrival', 'is_offer', 'is_out_of_stock', 'likes_count'];
+    const allowed = ['name', 'description', 'sku', 'price', 'category', 'stock', 'models', 'is_featured', 'is_new_arrival', 'is_offer', 'is_out_of_stock', 'likes_count'];
     allowed.forEach(field => {
       if (body[field] !== undefined) {
         if (field === 'price') updates.price = parseFloat(body.price);

@@ -266,8 +266,8 @@ export default function AdminCategories() {
 
       {/* Add/Edit Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white border border-ash rounded p-6 max-w-lg mx-4 w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-white border border-ash rounded p-6 max-w-lg mx-4 w-full max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h2 className="font-serif text-title-md text-ink-black">{editId ? 'Edit Category' : 'Add Category'}</h2>
               <button onClick={() => setShowForm(false)} className="p-1">
@@ -316,7 +316,7 @@ export default function AdminCategories() {
                   </button>
                 </div>
                 {formPreview ? (
-                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border border-ash bg-ash/20 mb-2">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden border border-ash bg-ash/20 mb-2 shadow-sm">
                     <img src={formPreview} alt="Preview" className="w-full h-full object-cover" />
                     <button
                       type="button"
@@ -328,7 +328,7 @@ export default function AdminCategories() {
                     </button>
                   </div>
                 ) : (
-                  <div className="w-24 h-24 rounded-lg border-2 border-dashed border-ash flex flex-col items-center justify-center text-smoke/50 bg-ash/10 mb-2">
+                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-ash flex flex-col items-center justify-center text-smoke/50 bg-ash/10 mb-2">
                     <span className="material-symbols-outlined text-2xl mb-0.5">add_photo_alternate</span>
                     <span className="font-sans text-[10px]">No image</span>
                   </div>
@@ -371,8 +371,8 @@ export default function AdminCategories() {
 
       {/* Delete Confirmation */}
       {deleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white border border-ash rounded p-6 max-w-sm mx-4 w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-white border border-ash rounded p-6 max-w-sm mx-4 w-full max-h-[90vh] overflow-y-auto">
             <h3 className="font-serif text-title-md text-ink-black mb-2">Delete Category</h3>
             <p className="font-sans text-body-sm text-smoke mb-5">Are you sure you want to delete this category?</p>
             <div className="flex items-center justify-end gap-3">

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
@@ -7,6 +7,7 @@ import CallButton from '../components/Social/CallButton';
 import ProductGrid from '../components/Product/ProductGrid';
 import HeroBannerCarousel from '../components/Banner/HeroBannerCarousel';
 import { useApp } from '../context/AppContext';
+import { useAutoRefresh } from '../hooks/useAutoRefresh';
 import { api, getImageUrl } from '../utils/api';
 import type { Product, Offer, Category, ProductVariant } from '../types';
 
@@ -41,38 +42,44 @@ export default function LandingPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  const load = useCallback(async () => {
+    const [offersRes, featuredRes, newArrivalsRes, categoriesRes, allProductsRes] = await Promise.all([
+      api.getOffers(),
+      api.getFeatured(),
+      api.getNewArrivals(),
+      api.getCategories(),
+      api.getProducts(),
+    ]);
+    if (offersRes.success && offersRes.data) setOffers(offersRes.data);
+    else showToast('Failed to load offers', 'error');
+    setOffersLoading(false);
+
+    if (featuredRes.success && featuredRes.data) setFeatured(featuredRes.data);
+    else showToast('Failed to load featured products', 'error');
+    setFeaturedLoading(false);
+
+    if (newArrivalsRes.success && newArrivalsRes.data) setNewArrivals(newArrivalsRes.data);
+    else showToast('Failed to load new arrivals', 'error');
+    setNewArrivalsLoading(false);
+
+    if (categoriesRes.success && categoriesRes.data) setCategories(categoriesRes.data);
+
+    if (allProductsRes.success && allProductsRes.data) setAllProducts(allProductsRes.data);
+    else showToast('Failed to load all products', 'error');
+    setAllProductsLoading(false);
+  }, [showToast]);
+
   useEffect(() => {
     let cancelled = false;
-    async function load() {
-      const [offersRes, featuredRes, newArrivalsRes, categoriesRes, allProductsRes] = await Promise.all([
-        api.getOffers(),
-        api.getFeatured(),
-        api.getNewArrivals(),
-        api.getCategories(),
-        api.getProducts(),
-      ]);
+    (async () => {
+      await load();
       if (cancelled) return;
-      if (offersRes.success && offersRes.data) setOffers(offersRes.data);
-      else showToast('Failed to load offers', 'error');
-      setOffersLoading(false);
-      
-      if (featuredRes.success && featuredRes.data) setFeatured(featuredRes.data);
-      else showToast('Failed to load featured products', 'error');
-      setFeaturedLoading(false);
-      
-      if (newArrivalsRes.success && newArrivalsRes.data) setNewArrivals(newArrivalsRes.data);
-      else showToast('Failed to load new arrivals', 'error');
-      setNewArrivalsLoading(false);
-      
-      if (categoriesRes.success && categoriesRes.data) setCategories(categoriesRes.data);
-      
-      if (allProductsRes.success && allProductsRes.data) setAllProducts(allProductsRes.data);
-      else showToast('Failed to load all products', 'error');
-      setAllProductsLoading(false);
-    }
-    load();
+    })();
     return () => { cancelled = true; };
-  }, [showToast]);
+  }, [load]);
+
+  // Live refresh: pick up newly added products/offers automatically
+  useAutoRefresh(load, 20000);
 
   function handleAddToCart(product: Product, _variant?: ProductVariant) {
     const num = whatsappNumber.replace(/[^0-9]/g, '');
@@ -185,19 +192,18 @@ export default function LandingPage() {
           />
         </section>
 
-        {/* Individual Category Sections: iPhone, Samsung, Accessories, Gadgets, Others */}
-        {['iPhone', 'Samsung', 'Accessories', 'Gadgets', 'Others'].map((catName) => {
-          const catProducts = getProductsByCategory(catName);
-          const slug = catName.toLowerCase();
+        {/* Individual Category Sections — dynamically driven by the categories in the DB */}
+        {categories.map((cat) => {
+          const catProducts = getProductsByCategory(cat.name);
           if (catProducts.length === 0 && !allProductsLoading) return null;
           return (
-            <section key={catName} className="max-w-container mx-auto px-gutter mb-10">
+            <section key={cat.id} className="max-w-container mx-auto px-gutter mb-10">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="font-headline-md text-headline-md text-ink-black butter-underline inline-block">
-                  {catName}
+                  {cat.name}
                 </h2>
                 <Link
-                  to={`/category/${slug}`}
+                  to={`/category/${cat.slug}`}
                   className="font-label-sm text-label-sm text-smoke hover:text-ink-black transition-colors"
                 >
                   View all
@@ -212,6 +218,27 @@ export default function LandingPage() {
             </section>
           );
         })}
+
+        {/* All Products */}
+        <section className="max-w-container mx-auto px-gutter mb-10">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-headline-md text-headline-md text-ink-black butter-underline inline-block">
+              All Products
+            </h2>
+            <Link
+              to="/catalog"
+              className="font-label-sm text-label-sm text-smoke hover:text-ink-black transition-colors"
+            >
+              View all
+            </Link>
+          </div>
+          <ProductGrid
+            products={allProducts.slice(0, displayLimit * 2)}
+            loading={allProductsLoading}
+            onLike={handleLike}
+            onAddToCart={handleAddToCart}
+          />
+        </section>
       </main>
 
       <WhatsAppButton />

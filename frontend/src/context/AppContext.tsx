@@ -22,6 +22,7 @@ interface SiteSettings {
   locationMapUrl: string;
   heroTitle: string;
   heroSubtitle: string;
+  seoKeywords: string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -38,6 +39,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   locationMapUrl: 'https://maps.app.goo.gl/JRej6So64iYYm7ia6',
   heroTitle: 'Modern Tech, Curated for You',
   heroSubtitle: 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories',
+  seoKeywords: '',
 };
 
 interface AppContextValue extends SiteSettings {
@@ -85,6 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           locationMapUrl: s.location_map_url || prev.locationMapUrl,
           heroTitle: s.hero_title || prev.heroTitle,
           heroSubtitle: s.hero_subtitle || prev.heroSubtitle,
+          seoKeywords: s.seo_keywords || prev.seoKeywords,
         }));
       }
     } catch (e) {

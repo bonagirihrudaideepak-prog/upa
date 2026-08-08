@@ -30,6 +30,7 @@ export interface Product {
   is_out_of_stock: boolean;
   likes_count: number;
   sku: string;
+  models: string[];
   created_at: string;
   main_image?: string | null;
   images: ProductImage[];

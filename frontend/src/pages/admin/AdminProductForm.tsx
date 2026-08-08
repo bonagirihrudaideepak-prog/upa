@@ -56,6 +56,8 @@ export default function AdminProductForm() {
   const [isOutOfStock, setIsOutOfStock] = useState(false);
 
   const [variants, setVariants] = useState<VariantEntry[]>([]);
+  const [models, setModels] = useState<string[]>([]);
+  const [modelInput, setModelInput] = useState('');
   const [images, setImages] = useState<ImageEntry[]>([]);
   const [urlInput, setUrlInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
@@ -88,6 +90,7 @@ export default function AdminProductForm() {
       setIsFeatured(p.is_featured);
       setIsNewArrival(p.is_new_arrival);
       setIsOutOfStock(p.is_out_of_stock);
+      setModels(Array.isArray(p.models) ? p.models : []);
       setVariants(
         p.variants?.map((v: ProductVariant) => ({
           color: v.color,
@@ -157,6 +160,18 @@ export default function AdminProductForm() {
     setVariants((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function addModel() {
+    const value = modelInput.trim();
+    if (!value) return;
+    const split = value.split(',').map((m) => m.trim()).filter(Boolean);
+    setModels((prev) => Array.from(new Set([...prev, ...split])));
+    setModelInput('');
+  }
+
+  function removeModel(index: number) {
+    setModels((prev) => prev.filter((_, i) => i !== index));
+  }
+
   function validate(): string | null {
     if (!name.trim()) return 'Product name is required.';
     if (!price || isNaN(Number(price)) || Number(price) <= 0) return 'Valid price is required.';
@@ -184,6 +199,7 @@ export default function AdminProductForm() {
     formData.append('is_featured', String(isFeatured));
     formData.append('is_new_arrival', String(isNewArrival));
     formData.append('is_out_of_stock', String(isOutOfStock));
+    formData.append('models', JSON.stringify(models));
 
     variants.forEach((v, i) => {
       formData.append(`variants[${i}][color]`, v.color);
@@ -391,6 +407,54 @@ export default function AdminProductForm() {
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* Product Models (dropdown options) */}
+            <div className="bg-white border border-ash rounded p-5 space-y-4">
+              <div>
+                <h2 className="font-serif text-title-md text-ink-black mb-1">Product Models</h2>
+                <p className="font-sans text-caption text-smoke">
+                  Add the different models of this product (e.g. iPhone 17, iPhone 17 Pro, iPhone 17 Pro Max, iPhone 17 E). These appear in the "Select Model" dropdown on the product page.
+                </p>
+              </div>
+
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={modelInput}
+                  onChange={(e) => setModelInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addModel(); } }}
+                  placeholder="e.g. iPhone 17, iPhone 17 Pro, iPhone 17 Pro Max"
+                  className="flex-1 px-3.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]"
+                />
+                <button
+                  type="button"
+                  onClick={addModel}
+                  className="px-4 py-2 bg-ink-black text-white font-sans text-label-sm rounded hover:bg-smoke transition-colors uppercase tracking-wider"
+                >
+                  Add
+                </button>
+              </div>
+
+              {models.length === 0 ? (
+                <p className="font-sans text-body-sm text-smoke italic">No models added yet. Add one above.</p>
+              ) : (
+                <ul className="flex flex-wrap gap-2">
+                  {models.map((m, i) => (
+                    <li key={i} className="flex items-center gap-1.5 bg-[#fbf8f6] border border-ash rounded-full pl-3 pr-1.5 py-1">
+                      <span className="font-sans text-body-sm text-ink-black">{m}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeModel(i)}
+                        className="w-5 h-5 rounded-full bg-white border border-ash text-smoke hover:text-red-600 hover:border-red-300 flex items-center justify-center transition-colors"
+                        aria-label={`Remove model ${m}`}
+                      >
+                        <span className="material-symbols-outlined text-xs">close</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
 
             {/* Images */}

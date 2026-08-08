@@ -105,8 +105,40 @@ async function ensureColumn(table, column, type) {
   }
 }
 
+// PostgreSQL/MySQL reject values longer than the column length. External image URLs
+// (e.g. Apple storeimages, e-commerce CDNs) regularly exceed 255 chars, so we widen
+// image_path columns to TEXT. SQLite ignores column lengths and has limited ALTER
+// support, so failing there is harmless.
+async function widenImagePathColumns() {
+  const candidates = [
+    { tableName: 'product_images', columnName: 'image_path' },
+    { tableName: 'offers', columnName: 'image_path' },
+    { tableName: 'categories', columnName: 'image_path' },
+  ];
+  for (const { tableName, columnName } of candidates) {
+    try {
+      if (!(await db.schema.hasTable(tableName))) continue;
+      await db.schema.alterTable(tableName, (table) => {
+        table.text(columnName).alter();
+      });
+      console.log(`[DB] Widened "${tableName}.${columnName}" to TEXT`);
+    } catch (err) {
+      // SQLite can't natively alter a column type — fine, lengths are not enforced there.
+      const msg = String((err && err.message) || err).toLowerCase();
+      if (msg.includes('unsupported alteration') || msg.includes('erbose') || msg.includes('parse error')) {
+        continue;
+      }
+      console.warn(`[DB] Could not widen "${tableName}.${columnName}":`, (err && err.message) || String(err));
+    }
+  }
+}
+
 async function initDb() {
   try {
+    // Widen image_path columns to TEXT so long external image URLs (e.g. Apple CDN,
+    // which exceed 255 chars) are not rejected/truncated on PostgreSQL/MySQL.
+    await widenImagePathColumns();
+
     // 1. Categories
     if (!(await db.schema.hasTable('categories'))) {
       await db.schema.createTable('categories', table => {
@@ -122,7 +154,7 @@ async function initDb() {
     }
 
     // Add optional category image column if missing (for existing databases)
-    await ensureColumn('categories', 'image_path', 'string');
+    await ensureColumn('categories', 'image_path', 'text');
 
     // 2. Products
     if (!(await db.schema.hasTable('products'))) {
@@ -149,12 +181,15 @@ async function initDb() {
       console.log('[DB] Created "products" table');
     }
 
+    // Optional list of selectable models for a product (e.g. iPhone 17, 17 Pro, 17 Pro Max)
+    await ensureColumn('products', 'models', 'text');
+
     // 3. Product Images
     if (!(await db.schema.hasTable('product_images'))) {
       await db.schema.createTable('product_images', table => {
         table.increments('id').primary();
         table.integer('product_id').unsigned().notNullable().references('id').inTable('products').onDelete('CASCADE');
-        table.string('image_path', 255).notNullable();
+        table.text('image_path').notNullable();
         table.string('image_type', 20).defaultTo('main');
         table.boolean('is_original_1_1').defaultTo(false);
         table.boolean('is_original_3_4').defaultTo(false);
@@ -182,7 +217,7 @@ async function initDb() {
         table.increments('id').primary();
         table.string('title', 255).notNullable();
         table.text('description');
-        table.string('image_path', 255);
+        table.text('image_path');
         table.string('link', 255);
         table.boolean('is_active').defaultTo(true);
         table.timestamp('created_at').defaultTo(db.fn.now());
@@ -258,9 +293,26 @@ async function initDb() {
         { setting_key: 'about_content', setting_value: 'Upanishad mobiles is a trusted local mobile store offering premium smartphones, cases, covers, tempered glass and accessories. We are located in Visakhapatnam and offer store pickup & takeaway only. Message us on WhatsApp for the latest deals and custom phone covers!' },
         { setting_key: 'hero_title', setting_value: 'Modern Tech, Curated for You' },
         { setting_key: 'hero_subtitle', setting_value: 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories' },
+        { setting_key: 'seo_keywords', setting_value: 'mobile shop Visakhapatnam, smartphone store online, phone covers, tempered glass, iPhone cases, Samsung accessories, new arrival mobiles, best phone deals Andhra Pradesh' },
         { setting_key: 'footer_subtitle', setting_value: 'Store Pickup Only • Premium Smartphones, Cases & Accessories' }
       ]);
       console.log('[DB] Seeded default site settings');
+    }
+
+    // Ensure individual settings exist even if the table was seeded before this key was added
+    try {
+      const missingSettings = [
+        { setting_key: 'seo_keywords', setting_value: 'mobile shop Visakhapatnam, smartphone store online, phone covers, tempered glass, iPhone cases, Samsung accessories, new arrival mobiles, best phone deals Andhra Pradesh' }
+      ];
+      for (const s of missingSettings) {
+        const existing = await db('site_settings').where('setting_key', s.setting_key).first();
+        if (!existing) {
+          await db('site_settings').insert(s);
+          console.log(`[DB] Added default setting "${s.setting_key}"`);
+        }
+      }
+    } catch (err) {
+      console.error('[DB] Error ensuring default settings:', err.message || err);
     }
 
     // Seed default categories if missing
@@ -314,6 +366,21 @@ async function initDb() {
 }
 
 // Helpers for data formatting
+function parseModels(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    } catch (e) {
+      // Not JSON — treat as comma/newline separated list
+      return raw.split(/[,\n]/).map((m) => m.trim()).filter(Boolean);
+    }
+  }
+  return [];
+}
+
 function formatProduct(p) {
   if (!p) return null;
   return {
@@ -322,6 +389,7 @@ function formatProduct(p) {
     price: Number(p.price),
     stock: Number(p.stock || 0),
     likes_count: Number(p.likes_count || 0),
+    models: parseModels(p.models),
     is_featured: Boolean(p.is_featured),
     is_new_arrival: Boolean(p.is_new_arrival),
     is_offer: Boolean(p.is_offer),

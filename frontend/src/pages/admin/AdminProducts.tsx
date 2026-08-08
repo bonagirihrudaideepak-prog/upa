@@ -200,8 +200,8 @@ export default function AdminProducts() {
 
       {/* Delete Confirmation Modal */}
       {deleteId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="bg-white border border-ash rounded p-6 max-w-sm mx-4 w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
+          <div className="bg-white border border-ash rounded p-6 max-w-sm mx-4 w-full max-h-[90vh] overflow-y-auto">
             <h3 className="font-serif text-title-md text-ink-black mb-2">Delete Product</h3>
             <p className="font-sans text-body-sm text-smoke mb-5">Are you sure you want to delete this product? This action cannot be undone.</p>
             <div className="flex items-center justify-end gap-3">
