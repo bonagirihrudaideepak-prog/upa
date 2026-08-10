@@ -32,6 +32,7 @@ export default function ProductDetailPage() {
   const [liked, setLiked] = useState(false);
   const [liking, setLiking] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   const isMountedRef = useRef(true);
   useEffect(() => {
@@ -152,8 +153,6 @@ export default function ProductDetailPage() {
       </div>
     );
   }
-
-  const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   // Extract all unique colors and models
   const allColors = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
