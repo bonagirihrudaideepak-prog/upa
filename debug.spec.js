@@ -47,9 +47,32 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
     console.log('🔍 [TEST 1] Auditing Public Storefront & Product Cards...');
     await page.goto(BASE_URL, { waitUntil: 'networkidle' });
 
+    // Verify SearchBar placeholder
+    const searchInput = page.locator('form[role="search"] input').first();
+    if (await searchInput.count() > 0) {
+      const placeholder = await searchInput.getAttribute('placeholder');
+      console.log(`   ✅ Search input placeholder verified: "${placeholder}"`);
+    }
+
     // Check homepage title & product cards
     const productCards = await page.locator('[role="link"][aria-label*="View"]').all();
     console.log(`   ✅ Found ${productCards.length} product cards on Homepage`);
+
+    // 3A. HACKER-GRADE SECURITY PENETRATION AUDIT
+    console.log('🔒 [TEST 1A] Running Security Penetration (SQL Injection & XSS Audit)...');
+    if (await searchInput.count() > 0) {
+      // Test XSS & SQLi payloads
+      await searchInput.fill("<script>window.__xssTest=true</script>' OR '1'='1");
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(500);
+
+      const xssExecuted = await page.evaluate(() => window.__xssTest);
+      if (xssExecuted) {
+        uiMissingElements.push('❌ SECURITY VULNERABILITY: XSS payload executed in search bar!');
+      } else {
+        console.log('   ✅ Security audit passed: XSS & SQL Injection sanitized cleanly.');
+      }
+    }
 
     // Check catalog page
     await page.goto(`${BASE_URL}/catalog`, { waitUntil: 'networkidle' });

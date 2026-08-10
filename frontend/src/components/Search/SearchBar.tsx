@@ -11,7 +11,7 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({
-  placeholder = 'Search Upanishad Mobile Store',
+  placeholder = 'Search Upanishad Mobiles...',
   fullWidth = false,
   className = '',
   onSearch,
