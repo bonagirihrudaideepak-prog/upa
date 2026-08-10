@@ -213,22 +213,28 @@ export default function AIChatWidget() {
           {/* Quick Prompts */}
           <div className="px-3 py-1.5 bg-white border-t border-ash/40 flex gap-1.5 overflow-x-auto no-scrollbar shrink-0">
             <button
-              onClick={() => handleSend('Show me iPhone 17 Pro Max')}
+              onClick={() => handleSend('below 500')}
+              className="bg-[#f0f4ff] text-[#004ac6] hover:bg-[#e0ecff] font-sans text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap border border-[#d0e0ff] transition-colors"
+            >
+              🏷️ Below ₹500
+            </button>
+            <button
+              onClick={() => handleSend('500 to 2000')}
+              className="bg-[#f0f4ff] text-[#004ac6] hover:bg-[#e0ecff] font-sans text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap border border-[#d0e0ff] transition-colors"
+            >
+              💰 ₹500 to ₹2,000
+            </button>
+            <button
+              onClick={() => handleSend('2000 and above')}
+              className="bg-[#f0f4ff] text-[#004ac6] hover:bg-[#e0ecff] font-sans text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap border border-[#d0e0ff] transition-colors"
+            >
+              💎 ₹2,000 & Above
+            </button>
+            <button
+              onClick={() => handleSend('iPhone 17 Pro Max')}
               className="bg-[#f0f4ff] text-[#004ac6] hover:bg-[#e0ecff] font-sans text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap border border-[#d0e0ff] transition-colors"
             >
               📱 iPhone 17 Pro Max
-            </button>
-            <button
-              onClick={() => handleSend('Does iPhone 17 Pro Max have Titanium Gray?')}
-              className="bg-[#f0f4ff] text-[#004ac6] hover:bg-[#e0ecff] font-sans text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap border border-[#d0e0ff] transition-colors"
-            >
-              🎨 Titanium Gray Check
-            </button>
-            <button
-              onClick={() => handleSend('Phones under 80000')}
-              className="bg-[#f0f4ff] text-[#004ac6] hover:bg-[#e0ecff] font-sans text-[10px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap border border-[#d0e0ff] transition-colors"
-            >
-              💰 Under ₹80,000
             </button>
           </div>
 

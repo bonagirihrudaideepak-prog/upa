@@ -99,10 +99,16 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
       await page.waitForTimeout(500);
       const chatInput = page.locator('input[placeholder*="Ask anything"]').first();
       if (await chatInput.count() > 0) {
+        // Test Model-Color check query
         await chatInput.fill('Does iPhone 17 Pro Max have Titanium Gray?');
         await page.keyboard.press('Enter');
-        await page.waitForTimeout(1500);
-        console.log('   ✅ AI Chatbot responded to natural language query & model-color validation check.');
+        await page.waitForTimeout(1000);
+
+        // Test Range query: "500 to 2000"
+        await chatInput.fill('500 to 2000');
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(1000);
+        console.log('   ✅ AI Chatbot responded to numeric price range query (500 to 2000).');
       }
     } else {
       uiMissingElements.push('❌ AI Shopping Chatbot widget missing on storefront.');

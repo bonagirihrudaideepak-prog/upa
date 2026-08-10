@@ -1132,23 +1132,45 @@ if ($uri === '/api/chat' && $method === 'POST') {
         }
     }
 
-    // 3. PRODUCT RAG SEMANTIC SEARCH & RECOMMENDATIONS
+    // 3. PRODUCT RAG SEMANTIC SEARCH & NUMERIC PRICE RANGE ENGINE
     $matchingProducts = [];
-
+    $minPriceFilter = null;
     $maxPriceFilter = null;
-    if (preg_match('/under\s+(?:₹|\$)?\s*(\d+)/i', $userMsgLower, $priceMatch)) {
-        $maxPriceFilter = (float)$priceMatch[1];
+    $priceFilterType = null;
+
+    // A. Range: "500 to 2000", "between 500 and 2000", "500-2000"
+    if (preg_match('/(?:between\s+)?(?:₹|\$)?\s*(\d+)\s*(?:to|-|and)\s*(?:₹|\$)?\s*(\d+)/i', $userMsgLower, $rangeMatch)) {
+        $minPriceFilter = (float)$rangeMatch[1];
+        $maxPriceFilter = (float)$rangeMatch[2];
+        if ($minPriceFilter > $maxPriceFilter) {
+            $tmp = $minPriceFilter;
+            $minPriceFilter = $maxPriceFilter;
+            $maxPriceFilter = $tmp;
+        }
+        $priceFilterType = 'range';
+    }
+    // B. Minimum: "2000 and above", "above 2000", "over 2000", "more than 2000", "2000+"
+    elseif (preg_match('/(?:above|over|more than|>|\+)\s*(?:₹|\$)?\s*(\d+)|(\d+)\s*(?:and above|\+|\s*plus)/i', $userMsgLower, $minMatch)) {
+        $minPriceFilter = (float)(!empty($minMatch[1]) ? $minMatch[1] : $minMatch[2]);
+        $priceFilterType = 'min';
+    }
+    // C. Maximum: "below 500", "under 500", "less than 500", "upto 500" or raw number "500"
+    elseif (preg_match('/(?:below|under|less than|upto|maximum|max|<)\s*(?:₹|\$)?\s*(\d+)|^(?:₹|\$)?\s*(\d+)\s*$/i', $userMsgLower, $maxMatch)) {
+        $maxPriceFilter = (float)(!empty($maxMatch[1]) ? $maxMatch[1] : $maxMatch[2]);
+        $priceFilterType = 'max';
     }
 
     foreach ($formattedProducts as $p) {
+        $price = (float)$p['price'];
+
+        // Enforce numeric range & threshold bounds
+        if ($minPriceFilter !== null && $price < $minPriceFilter) continue;
+        if ($maxPriceFilter !== null && $price > $maxPriceFilter) continue;
+
         $nameLower = strtolower($p['name']);
         $catLower = strtolower($p['category']);
         $descLower = strtolower($p['description'] ?? '');
         $modelsStr = strtolower(implode(' ', $p['models']));
-
-        if ($maxPriceFilter !== null && $p['price'] > $maxPriceFilter) {
-            continue;
-        }
 
         $keywords = explode(' ', preg_replace('/[^\w\s]/', '', $userMsgLower));
         $matchScore = 0;
@@ -1160,27 +1182,37 @@ if ($uri === '/api/chat' && $method === 'POST') {
             if (strpos($descLower, $kw) !== false) $matchScore += 1;
         }
 
-        if ($matchScore > 0 || $maxPriceFilter !== null) {
+        if ($matchScore > 0 || $priceFilterType !== null) {
             $matchingProducts[] = ['score' => $matchScore, 'product' => $p];
         }
     }
 
     usort($matchingProducts, fn($a, $b) => $b['score'] - $a['score']);
-    $finalProducts = array_map(fn($item) => $item['product'], array_slice($matchingProducts, 0, 4));
+    $finalProducts = array_map(fn($item) => $item['product'], array_slice($matchingProducts, 0, 6));
 
     if (empty($finalProducts)) {
         $finalProducts = array_slice($formattedProducts, 0, 3);
         json_response([
             'intent'   => 'product_search_fallback',
-            'reply'    => "I couldn't find an exact match for \"{$userMsg}\", but here are our top featured devices & premium covers:",
+            'reply'    => "I couldn't find products matching \"{$userMsg}\", but here are our top featured devices & premium accessories:",
             'products' => $finalProducts
         ]);
     }
 
     $count = count($finalProducts);
+    $replyMsg = "✨ Found **{$count} product" . ($count > 1 ? 's' : '') . "** matching your query:";
+
+    if ($priceFilterType === 'range') {
+        $replyMsg = "💰 Found **{$count} product" . ($count > 1 ? 's' : '') . "** priced between **₹" . number_format($minPriceFilter) . "** and **₹" . number_format($maxPriceFilter) . "** across our catalog:";
+    } elseif ($priceFilterType === 'min') {
+        $replyMsg = "💎 Found **{$count} product" . ($count > 1 ? 's' : '') . "** priced at **₹" . number_format($minPriceFilter) . " and above** across our catalog:";
+    } elseif ($priceFilterType === 'max') {
+        $replyMsg = "🏷️ Found **{$count} product" . ($count > 1 ? 's' : '') . "** priced at **₹" . number_format($maxPriceFilter) . " and below** across our catalog:";
+    }
+
     json_response([
         'intent'   => 'product_search',
-        'reply'    => "✨ Found **{$count} matching recommendation" . ($count > 1 ? 's' : '') . "** for your query:\n\n*Tip: Tap the WhatsApp icon on any card to reserve for instant store takeaway!*",
+        'reply'    => $replyMsg,
         'products' => $finalProducts
     ]);
 }
