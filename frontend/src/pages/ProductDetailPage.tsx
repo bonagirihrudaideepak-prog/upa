@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
@@ -33,11 +33,16 @@ export default function ProductDetailPage() {
   const [liking, setLiking] = useState(false);
   const [addingToCart, setAddingToCart] = useState(false);
 
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => { isMountedRef.current = false; };
+  }, []);
+
   const fetchProduct = useCallback(async () => {
     if (!id) return;
-    setLoading(true);
-    setError(null);
     const res = await api.getProduct(id);
+    if (!isMountedRef.current) return;
     if (res.success && res.data) {
       setProduct(res.data);
       setLikesCount(res.data.likes_count);

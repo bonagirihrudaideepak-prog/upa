@@ -7,7 +7,16 @@ export function useAutoRefresh(callback: () => void | Promise<void>, intervalMs 
   const cbRef = useRef(callback);
   cbRef.current = callback;
 
+  const isMounted = useRef(true);
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
+
   const run = useCallback(() => {
+    if (!isMounted.current) return;
     const res = cbRef.current();
     if (res && typeof (res as Promise<void>).then === 'function') {
       (res as Promise<void>).catch(() => {});
@@ -16,22 +25,17 @@ export function useAutoRefresh(callback: () => void | Promise<void>, intervalMs 
 
   useEffect(() => {
     const id = setInterval(() => {
-      if (!document.hidden) run();
-    }, Math.max(intervalMs, 5000));
+      if (!document.hidden && isMounted.current) run();
+    }, Math.max(intervalMs, 10000));
 
     function handleVisible() {
-      if (!document.hidden) run();
-    }
-    function handleFocus() {
-      run();
+      if (!document.hidden && isMounted.current) run();
     }
 
     document.addEventListener('visibilitychange', handleVisible);
-    window.addEventListener('focus', handleFocus);
     return () => {
       clearInterval(id);
       document.removeEventListener('visibilitychange', handleVisible);
-      window.removeEventListener('focus', handleFocus);
     };
   }, [run, intervalMs]);
 }
