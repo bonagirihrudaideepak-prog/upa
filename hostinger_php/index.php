@@ -189,28 +189,68 @@ function format_product(array $p, PDO $pdo): array {
         'main_image'     => $mainImage,
         'images'         => $imageList,
         'variants'       => $variants,
+        'models'         => array_values(array_unique(array_filter(array_map(fn($v) => $v['model'], $variants)))),
     ];
 }
 
-// Parse `variants[i][field]` multipart/JSON structure into clean variant rows
-function parse_variants_input($input): array {
+// Parse `variants` and `models` inputs into clean variant database rows
+function parse_all_variants_and_models(array $inputData): array {
     $result = [];
-    if (is_string($input)) {
-        $decoded = json_decode($input, true);
-        $input = is_array($decoded) ? $decoded : [];
-    }
-    if (!is_array($input)) return $result;
+    $existingModels = [];
 
-    foreach ($input as $v) {
-        if (!is_array($v)) continue;
-        $result[] = [
-            'color'      => (string)($v['color'] ?? ''),
-            'color_code' => (string)($v['color_code'] ?? '#000000'),
-            'model'      => $v['model'] ?? null,
-            'stock'      => (int)($v['stock'] ?? 0),
-        ];
+    // 1. Explicit variants
+    $rawVariants = $inputData['variants'] ?? [];
+    if (is_string($rawVariants)) {
+        $decoded = json_decode($rawVariants, true);
+        $rawVariants = is_array($decoded) ? $decoded : [];
     }
+    if (is_array($rawVariants)) {
+        foreach ($rawVariants as $v) {
+            if (!is_array($v)) continue;
+            $color = trim((string)($v['color'] ?? 'Default'));
+            $model = isset($v['model']) ? trim((string)$v['model']) : null;
+            if ($color === '' && ($model === null || $model === '')) continue;
+
+            if ($model !== null && $model !== '') {
+                $existingModels[] = strtolower($model);
+            }
+            $result[] = [
+                'color'      => $color !== '' ? $color : 'Default',
+                'color_code' => (string)($v['color_code'] ?? '#333333'),
+                'model'      => ($model !== null && $model !== '') ? $model : null,
+                'stock'      => (int)($v['stock'] ?? 10),
+            ];
+        }
+    }
+
+    // 2. Models list (e.g. models input field in Admin product form)
+    $rawModels = $inputData['models'] ?? [];
+    if (is_string($rawModels)) {
+        $decoded = json_decode($rawModels, true);
+        $rawModels = is_array($decoded) ? $decoded : [$rawModels];
+    }
+    if (is_array($rawModels)) {
+        foreach ($rawModels as $m) {
+            if (is_string($m) || is_numeric($m)) {
+                $modelName = trim((string)$m);
+                if ($modelName !== '' && !in_array(strtolower($modelName), $existingModels)) {
+                    $existingModels[] = strtolower($modelName);
+                    $result[] = [
+                        'color'      => 'Default',
+                        'color_code' => '#333333',
+                        'model'      => $modelName,
+                        'stock'      => 10,
+                    ];
+                }
+            }
+        }
+    }
+
     return $result;
+}
+
+function parse_variants_input($input): array {
+    return parse_all_variants_and_models(['variants' => $input]);
 }
 
 // Save uploaded `images[]` files, returns list of relative paths
@@ -312,7 +352,29 @@ if ($uri === '/api/admin/categories' && $method === 'GET') {
     json_response(array_map('format_category', $rows));
 }
 
-// POST /api/admin/categories (admin)
+// ========================================================
+// FILE UPLOADS
+// ========================================================
+if (($uri === '/api/upload' || $uri === '/api/admin/upload') && ($method === 'POST' || $method === 'PUT')) {
+    $paths = array_merge(
+        save_uploaded_images('file'),
+        save_uploaded_images('image'),
+        save_uploaded_images('images')
+    );
+
+    if (!empty($paths)) {
+        json_response([
+            'message' => 'Image uploaded successfully',
+            'path'    => $paths[0],
+            'url'     => $paths[0],
+            'paths'   => $paths,
+        ], 200);
+    } else {
+        json_response(['error' => 'No file uploaded or invalid file format. Allowed: JPG, PNG, WEBP, GIF.'], 400);
+    }
+}
+
+// POST /api/admin/categories (admin) — create category
 if ($uri === '/api/admin/categories' && $method === 'POST') {
     requireAdmin();
     $input = get_json_input();
@@ -321,13 +383,18 @@ if ($uri === '/api/admin/categories' && $method === 'POST') {
         json_response(['error' => 'Category name is required'], 400);
     }
     $slug = trim($input['slug'] ?? '') !== '' ? trim($input['slug']) : slugify($name);
+
+    $uploadedPaths = array_merge(save_uploaded_images('file'), save_uploaded_images('image'));
+    $imagePath = !empty($uploadedPaths) ? $uploadedPaths[0] : ($input['image_path'] ?? null);
+
     $stmt = $pdo->prepare(
-        "INSERT INTO categories (name, slug, description, display_order, is_active) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO categories (name, slug, description, image_path, display_order, is_active) VALUES (?, ?, ?, ?, ?, ?)"
     );
     $stmt->execute([
         $name,
         $slug,
         $input['description'] ?? null,
+        $imagePath,
         (int)($input['display_order'] ?? 0),
         (!isset($input['is_active']) || !to_bool($input['is_active'])) ? 0 : 1,
     ]);
@@ -337,8 +404,8 @@ if ($uri === '/api/admin/categories' && $method === 'POST') {
     json_response(format_category($stmt->fetch()), 201);
 }
 
-// PUT /api/admin/categories/{id} (admin)
-if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'PUT') {
+// PUT / POST /api/admin/categories/{id} (admin) — edit category
+if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && ($method === 'PUT' || $method === 'POST')) {
     requireAdmin();
     $id = (int)$m[1];
     $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
@@ -350,11 +417,21 @@ if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'PUT
     $input = get_json_input();
     $updates = [];
     $params = [];
-    if (isset($input['name']))        { $updates[] = 'name = ?';         $params[] = $input['name']; }
-    if (isset($input['slug']))        { $updates[] = 'slug = ?';         $params[] = $input['slug']; }
-    if (isset($input['description'])) { $updates[] = 'description = ?';  $params[] = $input['description']; }
+
+    $uploadedPaths = array_merge(save_uploaded_images('file'), save_uploaded_images('image'));
+    if (!empty($uploadedPaths)) {
+        $updates[] = 'image_path = ?';
+        $params[] = $uploadedPaths[0];
+    } elseif (array_key_exists('image_path', $input)) {
+        $updates[] = 'image_path = ?';
+        $params[] = $input['image_path'];
+    }
+
+    if (isset($input['name']))          { $updates[] = 'name = ?';          $params[] = trim($input['name']); }
+    if (isset($input['slug']))          { $updates[] = 'slug = ?';          $params[] = slugify($input['slug']); }
+    if (array_key_exists('description', $input)) { $updates[] = 'description = ?';  $params[] = $input['description']; }
     if (isset($input['display_order'])) { $updates[] = 'display_order = ?'; $params[] = (int)$input['display_order']; }
-    if (isset($input['is_active']))   { $updates[] = 'is_active = ?';    $params[] = to_bool($input['is_active']) ? 1 : 0; }
+    if (isset($input['is_active']))     { $updates[] = 'is_active = ?';     $params[] = to_bool($input['is_active']) ? 1 : 0; }
 
     if (count($updates) > 0) {
         $params[] = $id;
@@ -366,7 +443,7 @@ if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'PUT
     json_response(format_category($stmt->fetch()));
 }
 
-// DELETE /api/admin/categories/{id} (admin)
+// DELETE /api/admin/categories/{id} (admin) — delete category
 if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'DELETE') {
     requireAdmin();
     $id = (int)$m[1];
@@ -749,8 +826,8 @@ if ($uri === '/api/admin/products' && $method === 'POST') {
     ]);
     $productId = (int)$pdo->lastInsertId();
 
-    // Variants
-    $variants = parse_variants_input($input['variants'] ?? []);
+    // Variants & Models
+    $variants = parse_all_variants_and_models($input);
     if (count($variants) > 0) {
         $stmt = $pdo->prepare("INSERT INTO product_variants (product_id, color, color_code, model, stock) VALUES (?, ?, ?, ?, ?)");
         foreach ($variants as $v) {
@@ -810,9 +887,9 @@ if (preg_match('#^/api/admin/products/(\d+)$#i', $uri, $m) && ($method === 'PUT'
         $pdo->prepare("UPDATE products SET " . implode(', ', $updates) . " WHERE id = ?")->execute($params);
     }
 
-    // Replace variants when provided
-    if (isset($input['variants'])) {
-        $variants = parse_variants_input($input['variants']);
+    // Replace variants and models when provided
+    if (isset($input['variants']) || isset($input['models']) || !empty($_POST['models']) || !empty($_POST['variants'])) {
+        $variants = parse_all_variants_and_models($input);
         $pdo->prepare("DELETE FROM product_variants WHERE product_id = ?")->execute([$id]);
         if (count($variants) > 0) {
             $stmt = $pdo->prepare("INSERT INTO product_variants (product_id, color, color_code, model, stock) VALUES (?, ?, ?, ?, ?)");

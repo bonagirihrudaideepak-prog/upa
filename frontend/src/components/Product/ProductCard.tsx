@@ -24,6 +24,13 @@ export default function ProductCard({ product, onLike, onAddToCart }: ProductCar
     navigate(`/product/${product.id}`);
   }
 
+  const availableModels = Array.from(
+    new Set([
+      ...(product.models ?? []),
+      ...(product.variants?.map((v) => v.model).filter((m): m is string => Boolean(m && m.trim())) ?? []),
+    ])
+  );
+
   return (
     <div
       className="group relative bg-white border border-ash rounded-xl overflow-hidden hover:border-ink-black hover:-translate-y-1 hover:shadow-xl transition-all duration-300 cursor-pointer flex flex-col justify-between"
@@ -84,29 +91,52 @@ export default function ProductCard({ product, onLike, onAddToCart }: ProductCar
       </div>
 
       {/* Card Content */}
-      <div className="p-4 flex flex-col gap-2 flex-1 justify-between bg-white">
+      <div className="p-4 flex flex-col gap-2.5 flex-1 justify-between bg-white">
         <div>
-          <div className="flex items-center justify-between gap-2 mb-1">
-            <span className="font-sans text-[11px] uppercase tracking-wider text-smoke font-medium">{product.category}</span>
-            {colorVariants.length > 0 && (
-              <div className="flex gap-1">
-                {colorVariants.slice(0, 4).map((c, i) => (
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="font-sans text-[10px] uppercase tracking-wider text-smoke font-bold bg-[#f3f4f6] px-2 py-0.5 rounded border border-ash/40">{product.category}</span>
+          </div>
+
+          <h3 className="font-sans text-body-sm font-semibold text-ink-black line-clamp-1 group-hover:text-[#004ac6] transition-colors mb-1.5">
+            {product.name}
+          </h3>
+
+          {/* Models Showcase Badges */}
+          {availableModels.length > 0 && (
+            <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+              <span className="material-symbols-outlined text-[15px] text-[#004ac6]">smartphone</span>
+              <div className="flex gap-1 flex-wrap items-center">
+                {availableModels.slice(0, 2).map((m, i) => (
+                  <span key={i} className="inline-block bg-[#f0f4ff] text-[#004ac6] font-sans text-[10px] font-semibold px-2 py-0.5 rounded border border-[#d0e0ff]">
+                    {m}
+                  </span>
+                ))}
+                {availableModels.length > 2 && (
+                  <span className="text-[10px] text-smoke font-bold">+ {availableModels.length - 2} models</span>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Color Swatches Showcase */}
+          {colorVariants.length > 0 && (
+            <div className="flex items-center gap-1.5 mb-1">
+              <span className="text-[10px] font-semibold text-smoke uppercase tracking-wider">Colors:</span>
+              <div className="flex items-center gap-1">
+                {colorVariants.slice(0, 5).map((c, i) => (
                   <span
                     key={i}
-                    className="w-2.5 h-2.5 rounded-full border border-ash inline-block"
-                    style={{ backgroundColor: c.code }}
+                    className="w-3.5 h-3.5 rounded-full border border-ash inline-block shadow-2xs transition-transform hover:scale-125"
+                    style={{ backgroundColor: c.code || '#333' }}
                     title={c.color}
                   />
                 ))}
-                {colorVariants.length > 4 && (
-                  <span className="text-[9px] text-smoke font-bold">+{colorVariants.length - 4}</span>
+                {colorVariants.length > 5 && (
+                  <span className="text-[10px] text-smoke font-bold">+{colorVariants.length - 5}</span>
                 )}
               </div>
-            )}
-          </div>
-          <h3 className="font-sans text-body-sm font-semibold text-ink-black line-clamp-1 group-hover:text-[#004ac6] transition-colors">
-            {product.name}
-          </h3>
+            </div>
+          )}
         </div>
 
         <div className="pt-2 border-t border-ash/40 flex flex-wrap items-center justify-between gap-2">

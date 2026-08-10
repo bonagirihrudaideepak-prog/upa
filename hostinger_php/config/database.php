@@ -9,7 +9,7 @@ function getDatabaseConnection(): PDO {
         $port = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? $_SERVER['DB_PORT'] ?? '3306');
         $dbname = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? $_SERVER['DB_NAME'] ?? 'u836516682_upa_db');
         $username = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? $_SERVER['DB_USER'] ?? 'u836516682_upa_usr');
-        $password = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? $_SERVER['DB_PASS'] ?? '');
+        $password = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? $_SERVER['DB_PASS'] ?? 'UpanishadPass2026!');
 
         try {
             $dsn = "mysql:host={$host};port={$port};dbname={$dbname};charset=utf8mb4";
@@ -121,17 +121,15 @@ function autoInitDatabase(PDO $pdo): void {
                 (7, 'https://images.unsplash.com/photo-1541877944-ac82a091518a?w=800', 'main', 0),
                 (8, 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800', 'main', 0)");
         }
-        // Ensure Admin User exists
-        $adminUser = getenv('ADMIN_USERNAME') ?: 'admin';
-        $adminPass = getenv('ADMIN_PASSWORD') ?: 'admin123';
-        $passHash = password_hash($adminPass, PASSWORD_BCRYPT);
+        // Ensure Admin Users exist (Test123admin01 & admin)
+        $passHash1 = password_hash('Flipkartzon01123', PASSWORD_BCRYPT);
+        $passHash2 = password_hash('admin123', PASSWORD_BCRYPT);
 
-        $stmtCheckAdmin = $pdo->prepare("SELECT id FROM admin_users WHERE username = ?");
-        $stmtCheckAdmin->execute([$adminUser]);
-        if (!$stmtCheckAdmin->fetch()) {
-            $stmtInsertAdmin = $pdo->prepare("INSERT INTO admin_users (username, password_hash) VALUES (?, ?)");
-            $stmtInsertAdmin->execute([$adminUser, $passHash]);
-        }
+        $stmt1 = $pdo->prepare("INSERT INTO admin_users (username, password_hash) VALUES ('Test123admin01', ?) ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)");
+        $stmt1->execute([$passHash1]);
+
+        $stmt2 = $pdo->prepare("INSERT INTO admin_users (username, password_hash) VALUES ('admin', ?) ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)");
+        $stmt2->execute([$passHash2]);
     } catch (Exception $e) {
         // Ignore if already existing
     }
