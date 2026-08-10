@@ -4,6 +4,7 @@
   "description": "Upanishad Store - Node.js Backend & React Frontend",
   "main": "server.js",
   "scripts": {
+    "prestart": "npm run build",
     "start": "node server.js",
     "dev": "node server.js",
     "build": "cd frontend && npm install && npm run build"
