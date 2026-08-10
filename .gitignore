@@ -17,3 +17,10 @@ frontend/dist/
 Thumbs.db
 .vscode/
 .idea/
+
+# Archives & Temporary Deployment Packages
+*.zip
+*.tar.gz
+php_staging/
+HOSTINGER_TEMP_SITE_CREDENTIALS.md
+

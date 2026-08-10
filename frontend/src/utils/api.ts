@@ -46,9 +46,24 @@ async function request<T>(
       headers,
     });
 
+    const contentType = res.headers.get('content-type') || '';
+    
     if (!res.ok) {
-      const error = await res.json().catch(() => ({ message: res.statusText }));
-      return { success: false, error: error.message || `HTTP ${res.status}` };
+      let errorMsg = `HTTP ${res.status} ${res.statusText}`;
+      if (contentType.includes('application/json')) {
+        const errorData = await res.json().catch(() => null);
+        if (errorData?.message) errorMsg = errorData.message;
+      } else {
+        errorMsg = `Server endpoint unavailable (${res.status}). Ensure Node.js application is running in Hostinger hPanel.`;
+      }
+      return { success: false, error: errorMsg };
+    }
+
+    if (!contentType.includes('application/json')) {
+      return {
+        success: false,
+        error: 'Server returned HTML instead of JSON. Ensure Node.js application is started in Hostinger hPanel.',
+      };
     }
 
     const data = await res.json();

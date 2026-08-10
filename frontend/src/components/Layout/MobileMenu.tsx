@@ -189,18 +189,6 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
                 Follow on Instagram
               </a>
             </div>
-
-            <hr className="border-ash my-4" />
-
-            <div className="flex flex-col gap-1">
-              <Link
-                to="/admin"
-                onClick={onClose}
-                className="font-sans text-body-sm text-smoke py-2 hover:text-ink-black transition-colors"
-              >
-                Admin Panel Login
-              </Link>
-            </div>
           </nav>
         </div>
       </aside>

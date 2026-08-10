@@ -75,6 +75,16 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// Favicon Endpoint
+app.get('/favicon.ico', (req, res) => {
+  const icoPath = path.join(__dirname, 'frontend', 'dist', 'favicon.ico');
+  if (fs.existsSync(icoPath)) {
+    res.sendFile(icoPath);
+  } else {
+    res.status(204).end();
+  }
+});
+
 // Serve Static Frontend Assets (Production Build)
 const frontendDist = path.join(__dirname, 'frontend', 'dist');
 if (fs.existsSync(frontendDist)) {

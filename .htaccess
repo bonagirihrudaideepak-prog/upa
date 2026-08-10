@@ -1,0 +1,21 @@
+# Enable Hostinger Passenger Node.js app for upanishadmobiles.com
+<IfModule mod_passenger.c>
+  PassengerAppRoot "/home/u836516682/domains/upanishadmobiles.com/public_html"
+  PassengerBaseURI "/"
+  PassengerAppType node
+  PassengerStartupFile server.js
+  PassengerEnabled on
+</IfModule>
+
+# Client-Side Routing Fallback (Excludes /api and /uploads from HTML rewrite)
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteCond %{REQUEST_FILENAME} !-l
+  RewriteCond %{REQUEST_URI} !^/api/
+  RewriteCond %{REQUEST_URI} !^/uploads/
+  RewriteRule . /index.html [L]
+</IfModule>

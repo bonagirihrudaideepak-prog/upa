@@ -17,19 +17,6 @@ import AdminCategories from './pages/admin/AdminCategories';
 import AdminSettings from './pages/admin/AdminSettings';
 
 function AppRoutes() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.ctrlKey && e.shiftKey && (e.key === 'u' || e.key === 'U')) {
-        e.preventDefault();
-        navigate('/admin');
-      }
-    }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [navigate]);
-
   return (
     <>
       <ScrollToTop />
