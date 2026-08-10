@@ -1,0 +1,30 @@
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Enable CORS headers
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+        Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With"
+    </IfModule>
+
+    # Handle OPTIONS preflight requests
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [R=200,L]
+
+    # Route /api and /api/* requests to index.php
+    RewriteRule ^api(/.*)?$ index.php [QSA,L]
+
+    # Serve uploaded files directly
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^uploads/ - [L]
+
+    # Fallback to SPA index.html for non-API frontend routes
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api
+    RewriteRule ^ index.html [QSA,L]
+</IfModule>
