@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminMobileHeader from '../../components/Admin/AdminMobileHeader';
+import ImageUploader, { UploadedImageItem } from '../../components/Admin/ImageUploader';
 import { api, getImageUrl } from '../../utils/api';
 import type { Category } from '../../types';
 
@@ -295,61 +296,30 @@ export default function AdminCategories() {
                 <textarea value={formDesc} onChange={(e) => setFormDesc(e.target.value)} rows={2} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none" />
               </div>
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest">Category Image (for Shop by Category)</label>
-                </div>
-                <div className="flex gap-2 mb-2">
-                  <button
-                    type="button"
-                    onClick={() => setImageMode('file')}
-                    className={`px-2.5 py-1 rounded transition-colors text-caption font-sans ${imageMode === 'file' ? 'bg-[#004ac6] text-white font-medium' : 'bg-ash/40 text-smoke'}`}
-                  >
-                    Upload File
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageMode('url')}
-                    className={`px-2.5 py-1 rounded transition-colors text-caption font-sans ${imageMode === 'url' ? 'bg-[#004ac6] text-white font-medium' : 'bg-ash/40 text-smoke'}`}
-                  >
-                    Web Image URL
-                  </button>
-                </div>
-                {formPreview ? (
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border border-ash bg-ash/20 mb-2 shadow-sm">
-                    <img src={formPreview} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => { setFormImageFile(null); setFormImageUrl(''); setFormPreview(''); }}
-                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5"
-                      title="Remove image"
-                    >
-                      <span className="material-symbols-outlined text-sm block">close</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="w-24 h-24 rounded-full border-2 border-dashed border-ash flex flex-col items-center justify-center text-smoke/50 bg-ash/10 mb-2">
-                    <span className="material-symbols-outlined text-2xl mb-0.5">add_photo_alternate</span>
-                    <span className="font-sans text-[10px]">No image</span>
-                  </div>
-                )}
-                {imageMode === 'file' ? (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full font-sans text-body-sm file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:text-label-sm file:bg-[#004ac6]/10 file:text-[#004ac6] hover:file:bg-[#004ac6]/20 cursor-pointer"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    value={formImageUrl}
-                    onChange={(e) => handleImageUrlChange(e.target.value)}
-                    placeholder="https://... image link"
-                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
-                  />
-                )}
-              </div>
+              <ImageUploader
+                label="Category Image (for Shop by Category)"
+                multiple={false}
+                maxSizeMB={5}
+                images={formPreview ? [{ preview: formPreview, existing: true }] : []}
+                onChange={(uploaded) => {
+                  if (uploaded.length > 0) {
+                    const item = uploaded[0];
+                    if (item.file) {
+                      setFormImageFile(item.file);
+                      setFormImageUrl('');
+                      setFormPreview(item.preview);
+                    } else {
+                      setFormImageFile(null);
+                      setFormImageUrl(item.preview);
+                      setFormPreview(item.preview);
+                    }
+                  } else {
+                    setFormImageFile(null);
+                    setFormImageUrl('');
+                    setFormPreview('');
+                  }
+                }}
+              />
               <div>
                 <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Display Order</label>
                 <input type="number" value={formOrder} onChange={(e) => setFormOrder(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]" />

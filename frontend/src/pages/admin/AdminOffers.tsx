@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminMobileHeader from '../../components/Admin/AdminMobileHeader';
+import ImageUploader from '../../components/Admin/ImageUploader';
 import { api, getImageUrl } from '../../utils/api';
 import type { Offer } from '../../types';
 
@@ -308,65 +309,30 @@ export default function AdminOffers() {
                 />
               </div>
 
-              {/* Image Input Section with Toggle */}
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest">Banner Image</label>
-                  <div className="flex gap-2 text-caption font-sans">
-                    <button
-                      type="button"
-                      onClick={() => setImageMode('file')}
-                      className={`px-2.5 py-1 rounded transition-colors ${imageMode === 'file' ? 'bg-[#004ac6] text-white font-medium' : 'bg-ash/40 text-smoke'}`}
-                    >
-                      Upload File
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setImageMode('url')}
-                      className={`px-2.5 py-1 rounded transition-colors ${imageMode === 'url' ? 'bg-[#004ac6] text-white font-medium' : 'bg-ash/40 text-smoke'}`}
-                    >
-                      Web Image URL
-                    </button>
-                  </div>
-                </div>
-
-                {/* Preview Box */}
-                {formPreview ? (
-                  <div className="relative mb-3 aspect-video rounded-lg overflow-hidden border border-ash bg-ash/20">
-                    <img src={formPreview} alt="Preview" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => { setFormImageFile(null); setFormImageUrl(''); setFormPreview(''); }}
-                      className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black"
-                      title="Remove image"
-                    >
-                      <span className="material-symbols-outlined text-sm block">close</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="mb-3 aspect-video rounded-lg border-2 border-dashed border-ash flex flex-col items-center justify-center text-smoke/50 bg-ash/10">
-                    <span className="material-symbols-outlined text-3xl mb-1">add_photo_alternate</span>
-                    <span className="font-sans text-caption">No image selected</span>
-                  </div>
-                )}
-
-                {imageMode === 'file' ? (
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="w-full font-sans text-body-sm file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:text-label-sm file:bg-[#004ac6]/10 file:text-[#004ac6] hover:file:bg-[#004ac6]/20 cursor-pointer"
-                  />
-                ) : (
-                  <input
-                    type="text"
-                    value={formImageUrl}
-                    onChange={(e) => handleUrlChange(e.target.value)}
-                    placeholder="https://images.unsplash.com/... or image link"
-                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
-                  />
-                )}
-              </div>
+              <ImageUploader
+                label="Banner / Offer Image"
+                multiple={false}
+                maxSizeMB={5}
+                images={formPreview ? [{ preview: formPreview, existing: true }] : []}
+                onChange={(uploaded) => {
+                  if (uploaded.length > 0) {
+                    const item = uploaded[0];
+                    if (item.file) {
+                      setFormImageFile(item.file);
+                      setFormImageUrl('');
+                      setFormPreview(item.preview);
+                    } else {
+                      setFormImageFile(null);
+                      setFormImageUrl(item.preview);
+                      setFormPreview(item.preview);
+                    }
+                  } else {
+                    setFormImageFile(null);
+                    setFormImageUrl('');
+                    setFormPreview('');
+                  }
+                }}
+              />
 
               <div>
                 <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Target Link (Optional)</label>

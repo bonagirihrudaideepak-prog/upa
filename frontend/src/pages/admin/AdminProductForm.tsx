@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AdminSidebar from '../../components/Admin/AdminSidebar';
 import AdminMobileHeader from '../../components/Admin/AdminMobileHeader';
+import ImageUploader, { UploadedImageItem } from '../../components/Admin/ImageUploader';
 import { api, getImageUrl } from '../../utils/api';
 import type { Category, ProductVariant } from '../../types';
 
@@ -458,69 +459,26 @@ export default function AdminProductForm() {
             </div>
 
             {/* Images */}
-            <div className="bg-white border border-ash rounded p-5 space-y-4">
-              <div>
-                <h2 className="font-serif text-title-md text-ink-black mb-1">Product Images</h2>
-                <p className="font-sans text-caption text-smoke">Upload files from your device OR paste image Web URLs</p>
-              </div>
-
-              {/* Paste URL Input */}
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={urlInput}
-                  onChange={(e) => setUrlInput(e.target.value)}
-                  placeholder="Paste image web URL (e.g. https://images.unsplash.com/...)"
-                  className="flex-1 px-3.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]"
-                />
-                <button
-                  type="button"
-                  onClick={addUrlImage}
-                  className="px-4 py-2 bg-ink-black text-white font-sans text-label-sm rounded hover:bg-smoke transition-colors uppercase tracking-wider"
-                >
-                  Add URL
-                </button>
-              </div>
-
-              {/* Image Previews & Upload Box */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-                {images.map((img, i) => (
-                  <div key={i} className="relative aspect-square border border-ash rounded overflow-hidden bg-ash/20 group">
-                    <img src={img.preview} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute top-1 left-1">
-                      <span className="font-sans text-[10px] bg-white/90 text-ink-black px-2 py-0.5 rounded font-bold shadow-sm">
-                        {i === 0 ? 'MAIN' : 'ALT'}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="absolute top-1 right-1 w-6 h-6 bg-black/70 text-white rounded-full flex items-center justify-center opacity-90 hover:opacity-100 transition-opacity"
-                    >
-                      <span className="material-symbols-outlined text-sm">close</span>
-                    </button>
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="aspect-square border-2 border-dashed border-ash rounded flex flex-col items-center justify-center gap-1.5 text-smoke hover:border-[#004ac6] hover:text-[#004ac6] transition-colors bg-[#fbf8f6]"
-                >
-                  <span className="material-symbols-outlined text-3xl">cloud_upload</span>
-                  <span className="font-sans text-caption font-semibold">Browse File</span>
-                </button>
-              </div>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleImageUpload}
-                className="hidden"
-              />
-            </div>
+            {/* Images Uploader (Browse, Drag & Drop, External URL) */}
+            <ImageUploader
+              label="Product Images"
+              multiple={true}
+              maxSizeMB={5}
+              images={images.map((img) => ({
+                preview: img.preview,
+                file: img.file,
+                existing: Boolean(img.existing),
+              }))}
+              onChange={(uploaded) => {
+                const newEntries: ImageEntry[] = uploaded.map((item, idx) => ({
+                  file: item.file,
+                  preview: item.preview,
+                  existing: item.existing ? item.preview : undefined,
+                  type: idx === 0 ? 'main' : 'additional',
+                }));
+                setImages(newEntries);
+              }}
+            />
 
             {/* Submit */}
             <div className="flex items-center gap-3 pt-4">
