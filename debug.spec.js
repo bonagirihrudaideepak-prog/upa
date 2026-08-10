@@ -114,6 +114,17 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
       uiMissingElements.push('❌ AI Shopping Chatbot widget missing on storefront.');
     }
 
+    // 3C. TEST UNAUTHENTICATED ADMIN DIRECT ACCESS (SECURITY GUARD)
+    console.log('🔒 [TEST 1C] Auditing Unauthenticated Admin Route Protection...');
+    await page.goto(`${BASE_URL}/admin/system-health`, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(500);
+    const redirectedUrl = page.url();
+    if (redirectedUrl.endsWith('/admin') || redirectedUrl.endsWith('/admin/')) {
+      console.log('   ✅ Security Audit Passed: Direct unauthenticated access to /admin/system-health blocked & redirected to /admin.');
+    } else {
+      uiMissingElements.push('❌ SECURITY GAP: Unauthenticated user accessed /admin/system-health directly without login!');
+    }
+
     // 4. ADMIN LOGIN TEST
     console.log('🔍 [TEST 2] Testing Admin Login & Auth Token generation...');
     await page.goto(ADMIN_URL, { waitUntil: 'networkidle' });
