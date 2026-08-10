@@ -231,30 +231,23 @@ export default function AdminProductForm() {
     }
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-cream-paper flex">
-        <AdminSidebar />
-        <main className="flex-1 overflow-y-auto p-margin md:ml-80 pt-20 md:pt-10">
-          <div className="max-w-container mx-auto space-y-6 animate-pulse">
-            <div className="h-8 w-48 bg-ash/50 rounded" />
-            <div className="bg-white border border-ash rounded p-6 space-y-5">
-              <div className="h-10 w-full bg-ash/50 rounded" />
-              <div className="h-10 w-full bg-ash/50 rounded" />
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-cream-paper flex">
       <AdminSidebar />
       <AdminMobileHeader />
 
-      <main className="flex-1 overflow-y-auto p-gutter md:p-margin md:ml-80 pt-20 md:pt-10 pb-16">
-        <div className="max-w-3xl mx-auto space-y-6">
+      <main className="flex-1 overflow-y-auto p-gutter md:p-margin md:ml-80 pt-20 md:pt-10">
+        <div className="max-w-container mx-auto space-y-6">
+          {loading ? (
+            <div className="space-y-6 animate-pulse">
+              <div className="h-8 w-48 bg-ash/50 rounded" />
+              <div className="bg-white border border-ash rounded p-6 space-y-5">
+                <div className="h-10 w-full bg-ash/50 rounded" />
+                <div className="h-10 w-full bg-ash/50 rounded" />
+              </div>
+            </div>
+          ) : (
+            <>
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -498,6 +491,8 @@ export default function AdminProductForm() {
               </button>
             </div>
           </form>
+          </>
+          )}
         </div>
       </main>
     </div>

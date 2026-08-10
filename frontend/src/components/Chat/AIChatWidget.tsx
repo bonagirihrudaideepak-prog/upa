@@ -82,34 +82,45 @@ export default function AIChatWidget() {
     window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
+  const [showTooltip, setShowTooltip] = useState(false);
+
   return (
-    <div className="fixed bottom-5 right-5 z-40 font-sans">
-      {/* Floating Toggle Button */}
+    <div className="fixed bottom-6 left-6 z-50 font-sans">
+      {/* Sleek Compact Floating AI Icon Button */}
       {!isOpen && (
-        <button
-          onClick={() => setIsOpen(true)}
-          className="group relative flex items-center gap-2 bg-[#004ac6] text-white px-4 py-3 rounded-full shadow-2xl hover:bg-[#003b9e] transition-all hover:scale-105"
-          aria-label="Open AI Shopping Assistant Chat"
-        >
-          <span className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-          </span>
-          <span className="material-symbols-outlined text-2xl">smart_toy</span>
-          <span className="font-sans text-label-sm font-bold tracking-wide uppercase pr-1 hidden sm:inline">
-            Ask AI Assistant
-          </span>
-        </button>
+        <div className="relative">
+          {showTooltip && (
+            <div
+              className="absolute bottom-full left-0 mb-2 px-3 py-1.5 bg-ink-black text-white font-sans text-label-sm rounded whitespace-nowrap shadow-md"
+              role="tooltip"
+            >
+              Ask AI Assistant
+              <div className="absolute top-full left-4 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-ink-black" />
+            </div>
+          )}
+          <button
+            onClick={() => setIsOpen(true)}
+            onMouseEnter={() => setShowTooltip(true)}
+            onMouseLeave={() => setShowTooltip(false)}
+            className="relative flex items-center justify-center w-14 h-14 rounded-full bg-gradient-to-tr from-[#004ac6] via-[#4338ca] to-[#6B46C1] text-white shadow-2xl hover:scale-110 transition-all duration-300 group"
+            aria-label="Open AI Shopping Assistant"
+          >
+            <span className="material-symbols-outlined text-2xl group-hover:rotate-12 transition-transform">auto_awesome</span>
+            <span className="absolute -top-1 -right-1 bg-emerald-500 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full border-2 border-white shadow-xs">
+              AI
+            </span>
+          </button>
+        </div>
       )}
 
       {/* Expanded Chat Drawer */}
       {isOpen && (
         <div className="w-[92vw] sm:w-[390px] h-[520px] max-h-[85vh] bg-white border border-ash/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeIn">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#004ac6] to-[#003399] text-white p-4 flex items-center justify-between shrink-0">
+          <div className="bg-gradient-to-r from-[#004ac6] to-[#4338ca] text-white p-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-2.5">
               <div className="relative w-8 h-8 rounded-full bg-white/10 border border-white/30 flex items-center justify-center">
-                <span className="material-symbols-outlined text-xl">smart_toy</span>
+                <span className="material-symbols-outlined text-xl">auto_awesome</span>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white"></span>
               </div>
               <div>

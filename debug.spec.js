@@ -66,7 +66,7 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
     // 3B. TEST AI SHOPPING CHATBOT WIDGET & RAG DISCOVERY
     console.log('🔍 [TEST 1B] Auditing AI Shopping Assistant Widget & Model-Color Validation...');
     await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
-    const chatBubble = page.locator('button[aria-label="Open AI Shopping Assistant Chat"]').first();
+    const chatBubble = page.locator('button[aria-label="Open AI Shopping Assistant"]').first();
     if (await chatBubble.count() > 0) {
       await chatBubble.click();
       await page.waitForTimeout(500);
