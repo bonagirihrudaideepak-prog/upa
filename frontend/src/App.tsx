@@ -14,6 +14,7 @@ import AdminProducts from './pages/admin/AdminProducts';
 import AdminProductForm from './pages/admin/AdminProductForm';
 import AdminOffers from './pages/admin/AdminOffers';
 import AdminCategories from './pages/admin/AdminCategories';
+import AdminSystemHealth from './pages/admin/AdminSystemHealth';
 import AdminSettings from './pages/admin/AdminSettings';
 
 function AppRoutes() {
@@ -34,6 +35,7 @@ function AppRoutes() {
       <Route path="/admin/products/:id/edit" element={<AdminProductForm />} />
       <Route path="/admin/offers" element={<AdminOffers />} />
       <Route path="/admin/categories" element={<AdminCategories />} />
+      <Route path="/admin/system-health" element={<AdminSystemHealth />} />
       <Route path="/admin/settings" element={<AdminSettings />} />
       </Routes>
     </>

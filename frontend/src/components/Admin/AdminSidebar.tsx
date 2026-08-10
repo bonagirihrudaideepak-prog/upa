@@ -13,6 +13,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Products', path: '/admin/products', icon: 'inventory_2' },
   { label: 'Banners & Offers', path: '/admin/offers', icon: 'campaign' },
   { label: 'Categories', path: '/admin/categories', icon: 'category' },
+  { label: 'System Health', path: '/admin/system-health', icon: 'health_and_safety' },
   { label: 'Website Settings', path: '/admin/settings', icon: 'tune' },
 ];
 

@@ -239,4 +239,14 @@ export const api = {
       body: JSON.stringify(data),
     });
   },
+
+  getSystemHealth() {
+    return request<any>('/api/admin/system-health');
+  },
+
+  runSystemAudit() {
+    return request<any>('/api/admin/system-health/run-audit', {
+      method: 'POST',
+    });
+  },
 };
