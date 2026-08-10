@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Routes, Route, useNavigate } from 'react-router-dom';
 import { AppProvider } from './context/AppContext';
 import ScrollToTop from './components/Layout/ScrollToTop';
+import AIChatWidget from './components/Chat/AIChatWidget';
 
 import LandingPage from './pages/LandingPage';
 import CatalogPage from './pages/CatalogPage';
@@ -38,6 +39,7 @@ function AppRoutes() {
       <Route path="/admin/system-health" element={<AdminSystemHealth />} />
       <Route path="/admin/settings" element={<AdminSettings />} />
       </Routes>
+      <AIChatWidget />
     </>
   );
 }

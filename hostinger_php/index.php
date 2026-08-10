@@ -1039,6 +1039,143 @@ if ($uri === '/api/admin/system-health/run-audit' && $method === 'POST') {
 }
 
 // ========================================================
+// AI SHOPPING CHATBOT (RAG & INTENT CLASSIFIER)
+// ========================================================
+if ($uri === '/api/chat' && $method === 'POST') {
+    $input = get_json_input();
+    $userMsg = trim($input['message'] ?? '');
+    $userMsgLower = strtolower($userMsg);
+
+    if ($userMsg === '') {
+        json_response(['reply' => 'Hi there! 👋 How can I help you find smartphones or mobile accessories today?', 'products' => []]);
+    }
+
+    // 1. FAQ INTENTS
+    if (preg_match('/(location|address|where|store|address|timing|hours)/i', $userMsgLower)) {
+        json_response([
+            'intent'   => 'faq_location',
+            'reply'    => "📍 **Upanishad Mobile Store**\nWe are located at Main Road, City Center. We specialize in in-store pickups & takeaways!\n⏰ Timings: 10:00 AM - 9:30 PM (Mon-Sat)\n📱 Call/WhatsApp: +91 98765 43210",
+            'products' => []
+        ]);
+    }
+
+    if (preg_match('/(return|refund|warranty|policy|replacement)/i', $userMsgLower)) {
+        json_response([
+            'intent'   => 'faq_returns',
+            'reply'    => "🛡️ **Store Return & Warranty Policy**\n- 7-Day Instant Store Replacement for manufacturing defects.\n- 1-Year Official Brand Warranty on all sealed devices.\n- In-store testing before pickup for 100% peace of mind!",
+            'products' => []
+        ]);
+    }
+
+    if (preg_match('/(contact|phone|number|call|whatsapp)/i', $userMsgLower)) {
+        json_response([
+            'intent'   => 'faq_contact',
+            'reply'    => "📞 **Contact Us Directly**\n- WhatsApp: +91 98765 43210\n- Phone: +91 98765 43210\nFeel free to message us to reserve any model for store takeaway!",
+            'products' => []
+        ]);
+    }
+
+    // 2. MODEL-COLOR VALIDATION INTENT CHECK
+    // Example: "Do you have Titanium Gray for iPhone 17 Pro Max?" or "iPhone 17 Pro Max in Titanium Gray"
+    $allProductsRaw = $pdo->query("SELECT * FROM products WHERE is_out_of_stock = 0 OR is_out_of_stock IS NULL ORDER BY created_at DESC")->fetchAll();
+    $formattedProducts = array_map(fn($p) => format_product($p, $pdo), $allProductsRaw);
+
+    // Look for color validation match
+    if (preg_match('/(titanium gray|titanium grey|gray|grey|starlight|midnight|purple|gold|brown|blue|rose gold)/i', $userMsgLower, $colorMatch)) {
+        $reqColor = strtolower($colorMatch[1]);
+
+        foreach ($formattedProducts as $p) {
+            foreach ($p['models'] as $mod) {
+                if (stripos($userMsgLower, strtolower($mod)) !== false || (stripos($mod, 'pro max') !== false && stripos($userMsgLower, 'pro max') !== false)) {
+                    // Found targeted model
+                    $validColors = [];
+                    foreach ($p['variants'] as $v) {
+                        if ($v['model'] === $mod || empty($v['model'])) {
+                            $validColors[] = $v['color'];
+                        }
+                    }
+                    $validColors = array_values(array_unique(array_filter($validColors)));
+
+                    $isColorAvailable = false;
+                    foreach ($validColors as $vc) {
+                        if (stripos($vc, $reqColor) !== false) {
+                            $isColorAvailable = true;
+                            break;
+                        }
+                    }
+
+                    if (!$isColorAvailable && !empty($validColors)) {
+                        $colorListStr = implode(', ', $validColors);
+                        json_response([
+                            'intent'   => 'color_check',
+                            'reply'    => "⚠️ **" . ucfirst($reqColor) . "** is not available for the **{$mod}**.\n\nAvailable colors for this model are: **{$colorListStr}**.\n\nWould you like to see one of the available options below?",
+                            'products' => [$p]
+                        ]);
+                    }
+                }
+            }
+        }
+    }
+
+    // 3. PRODUCT RAG SEMANTIC SEARCH & FILTERING
+    $matchingProducts = [];
+
+    // Price filter check (e.g. "under 50000" or "under 800")
+    $maxPriceFilter = null;
+    if (preg_match('/under\s+(?:₹|\$)?\s*(\d+)/i', $userMsgLower, $priceMatch)) {
+        $maxPriceFilter = (float)$priceMatch[1];
+    }
+
+    foreach ($formattedProducts as $p) {
+        $nameLower = strtolower($p['name']);
+        $catLower = strtolower($p['category']);
+        $descLower = strtolower($p['description'] ?? '');
+        $modelsStr = strtolower(implode(' ', $p['models']));
+
+        // Check price filter
+        if ($maxPriceFilter !== null && $p['price'] > $maxPriceFilter) {
+            continue;
+        }
+
+        // Semantic keyword match
+        $keywords = explode(' ', preg_replace('/[^\w\s]/', '', $userMsgLower));
+        $matchScore = 0;
+        foreach ($keywords as $kw) {
+            if (strlen($kw) < 2) continue;
+            if (strpos($nameLower, $kw) !== false) $matchScore += 3;
+            if (strpos($modelsStr, $kw) !== false) $matchScore += 2;
+            if (strpos($catLower, $kw) !== false) $matchScore += 2;
+            if (strpos($descLower, $kw) !== false) $matchScore += 1;
+        }
+
+        if ($matchScore > 0 || $maxPriceFilter !== null) {
+            $matchingProducts[] = ['score' => $matchScore, 'product' => $p];
+        }
+    }
+
+    // Sort by score
+    usort($matchingProducts, fn($a, $b) => $b['score'] - $a['score']);
+    $finalProducts = array_map(fn($item) => $item['product'], array_slice($matchingProducts, 0, 4));
+
+    if (empty($finalProducts)) {
+        // Fallback to top products if no exact match
+        $finalProducts = array_slice($formattedProducts, 0, 3);
+        json_response([
+            'intent'   => 'product_search_fallback',
+            'reply'    => "I couldn't find an exact match for \"{$userMsg}\", but here are our top featured devices & covers you might like:",
+            'products' => $finalProducts
+        ]);
+    }
+
+    $count = count($finalProducts);
+    json_response([
+        'intent'   => 'product_search',
+        'reply'    => "Found **{$count} matching product" . ($count > 1 ? 's' : '') . "** for your query:",
+        'products' => $finalProducts
+    ]);
+}
+
+// ========================================================
 // UPLOADS
 // ========================================================
 

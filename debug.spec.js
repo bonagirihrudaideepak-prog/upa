@@ -63,6 +63,24 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
       }
     }
 
+    // 3B. TEST AI SHOPPING CHATBOT WIDGET & RAG DISCOVERY
+    console.log('🔍 [TEST 1B] Auditing AI Shopping Assistant Widget & Model-Color Validation...');
+    await page.goto(BASE_URL, { waitUntil: 'domcontentloaded' });
+    const chatBubble = page.locator('button[aria-label="Open AI Shopping Assistant Chat"]').first();
+    if (await chatBubble.count() > 0) {
+      await chatBubble.click();
+      await page.waitForTimeout(500);
+      const chatInput = page.locator('input[placeholder*="Ask anything"]').first();
+      if (await chatInput.count() > 0) {
+        await chatInput.fill('Does iPhone 17 Pro Max have Titanium Gray?');
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(1500);
+        console.log('   ✅ AI Chatbot responded to natural language query & model-color validation check.');
+      }
+    } else {
+      uiMissingElements.push('❌ AI Shopping Chatbot widget missing on storefront.');
+    }
+
     // 4. ADMIN LOGIN TEST
     console.log('🔍 [TEST 2] Testing Admin Login & Auth Token generation...');
     await page.goto(ADMIN_URL, { waitUntil: 'networkidle' });

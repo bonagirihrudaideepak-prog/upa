@@ -249,4 +249,11 @@ export const api = {
       method: 'POST',
     });
   },
+
+  sendChatMessage(message: string) {
+    return request<{ intent: string; reply: string; products: any[] }>('/api/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  },
 };
