@@ -148,19 +148,81 @@ export default function ProductDetailPage() {
     );
   }
 
-  const imageUrl = product.images?.[0] ? getImageUrl(product.images[0].image_path) : '';
-  const uniqueColors = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
-    if (!acc.find((c) => c.code === v.color_code)) {
-      acc.push({ color: v.color, code: v.color_code });
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
+
+  // Extract all unique colors and models
+  const allColors = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
+    if (v.color_code && !acc.find((c) => c.code === v.color_code)) {
+      acc.push({ color: v.color || 'Default', code: v.color_code });
     }
     return acc;
   }, []) ?? [];
-  // Merge the admin-defined product models (dropdown list) with any models from color variants,
-  // deduplicated, so the "Select Model" dropdown always reflects everything available.
-  const uniqueModels = [...new Set([
-    ...(product.models ?? []),
-    ...(product.variants?.map((v) => v.model).filter(Boolean) ?? []),
-  ])];
+
+  const allModels = Array.from(
+    new Set([
+      ...(product.models ?? []),
+      ...(product.variants?.map((v) => v.model).filter((m): m is string => Boolean(m && m.trim())) ?? []),
+    ])
+  );
+
+  // Dynamic Filtering: Colors available for the currently selected Model
+  const availableColorsForModel = selectedModel
+    ? allColors.filter((c) =>
+        product.variants?.some(
+          (v) => (!v.model || v.model === selectedModel) && v.color_code === c.code
+        )
+      )
+    : allColors;
+
+  // Dynamic Filtering: Models available for the currently selected Color
+  const availableModelsForColor = selectedColor
+    ? allModels.filter((m) =>
+        product.variants?.some((v) => v.color_code === selectedColor && (!v.model || v.model === m))
+      )
+    : allModels;
+
+  function handleSelectModel(modelName: string) {
+    setSelectedModel(modelName);
+    if (selectedColor && modelName) {
+      const isColorValid = product?.variants?.some(
+        (v) => (!v.model || v.model === modelName) && v.color_code === selectedColor
+      );
+      if (!isColorValid) {
+        const colorObj = allColors.find((c) => c.code === selectedColor);
+        const colorNameStr = colorObj?.color || 'Selected Color';
+        setSelectedColor('');
+        setWarningMsg(`⚠️ ${colorNameStr} is not available for the selected ${modelName}. Please choose another color.`);
+        return;
+      }
+    }
+    setWarningMsg(null);
+  }
+
+  function handleSelectColor(colorCode: string) {
+    if (selectedColor === colorCode) {
+      setSelectedColor('');
+      setWarningMsg(null);
+      return;
+    }
+
+    setSelectedColor(colorCode);
+    if (selectedModel && colorCode) {
+      const isModelValid = product?.variants?.some(
+        (v) => (!v.model || v.model === selectedModel) && v.color_code === colorCode
+      );
+      if (!isModelValid) {
+        const colorObj = allColors.find((c) => c.code === colorCode);
+        const colorNameStr = colorObj?.color || 'Selected Color';
+        setWarningMsg(`⚠️ ${colorNameStr} is not available for the selected ${selectedModel}. Please choose another color.`);
+        return;
+      }
+    }
+    setWarningMsg(null);
+  }
+
+  const colorName = allColors.find((c) => c.code === selectedColor)?.color ?? '';
+
+  const imageUrl = product.images?.[0] ? getImageUrl(product.images[0].image_path) : (product.main_image ? getImageUrl(product.main_image) : '');
 
   return (
     <div className="min-h-screen flex flex-col bg-cream-paper">
@@ -229,49 +291,79 @@ export default function ProductDetailPage() {
                 </p>
               )}
 
-              {/* Color Swatches */}
-              {uniqueColors.length > 0 && (
-                <div>
-                  <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">
-                    Color
-                  </p>
-                  <div className="flex gap-2 flex-wrap">
-                    {uniqueColors.map((c) => (
-                      <button
-                        key={c.code}
-                        onClick={() => setSelectedColor(c.code === selectedColor ? '' : c.code)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          selectedColor === c.code
-                            ? 'border-ink-black scale-110'
-                            : 'border-ash hover:border-smoke'
-                        }`}
-                        style={{ backgroundColor: c.code }}
-                        aria-label={c.color}
-                        title={c.color}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {/* Model Selector */}
-              {uniqueModels.length > 0 && (
+              {allModels.length > 0 && (
                 <div>
                   <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">
-                    Model
+                    1. Select Phone Model
                   </p>
                   <select
                     value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="w-full border border-ash rounded px-3 py-2 font-body-md text-body-md text-ink-black bg-white focus:outline-none focus:border-ink-black transition-colors"
+                    onChange={(e) => handleSelectModel(e.target.value)}
+                    className="w-full border border-ash rounded px-3.5 py-2.5 font-body-md text-body-md text-ink-black bg-white focus:outline-none focus:border-ink-black transition-colors"
                   >
-                    <option value="">Select model</option>
-                    {uniqueModels.map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
+                    <option value="">-- Select Model --</option>
+                    {allModels.map((m) => {
+                      const isAvailableForColor = availableModelsForColor.includes(m);
+                      return (
+                        <option key={m} value={m} disabled={selectedColor ? !isAvailableForColor : false}>
+                          {m} {selectedColor && !isAvailableForColor ? '(Not available in selected color)' : ''}
+                        </option>
+                      );
+                    })}
                   </select>
+                </div>
+              )}
+
+              {/* Color Swatches */}
+              {allColors.length > 0 && (
+                <div>
+                  <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">
+                    2. Select Color {colorName ? `: ${colorName}` : ''}
+                  </p>
+                  {availableColorsForModel.length === 0 && selectedModel ? (
+                    <p className="font-sans text-body-sm text-amber-700 bg-amber-50 p-2.5 rounded border border-amber-200">
+                      No color variants available for this model.
+                    </p>
+                  ) : (
+                    <div className="flex gap-2 flex-wrap">
+                      {allColors.map((c) => {
+                        const isAvailable = availableColorsForModel.some((ac) => ac.code === c.code);
+                        const isSelected = selectedColor === c.code;
+
+                        return (
+                          <button
+                            key={c.code}
+                            onClick={() => handleSelectColor(c.code)}
+                            className={`w-9 h-9 rounded-full border-2 transition-all relative ${
+                              isSelected
+                                ? 'border-ink-black scale-110 shadow-md ring-2 ring-ink-black/20'
+                                : isAvailable
+                                ? 'border-ash hover:border-smoke'
+                                : 'border-gray-200 opacity-35 cursor-not-allowed'
+                            }`}
+                            style={{ backgroundColor: c.code }}
+                            aria-label={c.color}
+                            title={isAvailable ? c.color : `${c.color} (Not available for ${selectedModel || 'this model'})`}
+                          >
+                            {!isAvailable && (
+                              <span className="absolute inset-0 flex items-center justify-center text-red-500 font-bold text-xs select-none">
+                                ✕
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Conditional Warning Banner */}
+              {warningMsg && (
+                <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-2.5 text-amber-900 animate-fadeIn">
+                  <span className="material-symbols-outlined text-lg text-amber-600 shrink-0 mt-0.5">warning</span>
+                  <p className="font-sans text-body-sm font-semibold leading-snug">{warningMsg}</p>
                 </div>
               )}
 

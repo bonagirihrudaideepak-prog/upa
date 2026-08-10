@@ -17,7 +17,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
   const [likesCount, setLikesCount] = useState(0);
   const [liked, setLiked] = useState(false);
   const [liking, setLiking] = useState(false);
-  const [showPickupNotice, setShowPickupNotice] = useState(false);
+  const [warningMsg, setWarningMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
@@ -25,7 +25,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
       setLiked(false);
       setSelectedColor('');
       setSelectedModel('');
-      setShowPickupNotice(false);
+      setWarningMsg(null);
     }
   }, [product]);
 
@@ -34,14 +34,75 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
   const p = product;
   const imageUrl = p.images?.[0] ? getImageUrl(p.images[0].image_path) : (p.main_image ? getImageUrl(p.main_image) : '');
 
-  const uniqueColors = p.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
-    if (!acc.find((c) => c.code === v.color_code)) {
-      acc.push({ color: v.color, code: v.color_code });
+  // Extract all unique colors and models
+  const allColors = p.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
+    if (v.color_code && !acc.find((c) => c.code === v.color_code)) {
+      acc.push({ color: v.color || 'Default', code: v.color_code });
     }
     return acc;
   }, []) ?? [];
 
-  const uniqueModels = [...new Set(p.variants?.map((v) => v.model) ?? [])];
+  const allModels = Array.from(
+    new Set([
+      ...(p.models ?? []),
+      ...(p.variants?.map((v) => v.model).filter((m): m is string => Boolean(m && m.trim())) ?? []),
+    ])
+  );
+
+  // Dynamic Filtering: Colors available for the currently selected Model
+  const availableColorsForModel = selectedModel
+    ? allColors.filter((c) =>
+        p.variants?.some(
+          (v) => (!v.model || v.model === selectedModel) && v.color_code === c.code
+        )
+      )
+    : allColors;
+
+  // Dynamic Filtering: Models available for the currently selected Color
+  const availableModelsForColor = selectedColor
+    ? allModels.filter((m) =>
+        p.variants?.some((v) => v.color_code === selectedColor && (!v.model || v.model === m))
+      )
+    : allModels;
+
+  function handleSelectModel(modelName: string) {
+    setSelectedModel(modelName);
+    if (selectedColor && modelName) {
+      const isColorValid = p.variants?.some(
+        (v) => (!v.model || v.model === modelName) && v.color_code === selectedColor
+      );
+      if (!isColorValid) {
+        const colorObj = allColors.find((c) => c.code === selectedColor);
+        const colorNameStr = colorObj?.color || 'Selected Color';
+        setSelectedColor('');
+        setWarningMsg(`⚠️ ${colorNameStr} is not available for the selected ${modelName}. Please choose another color.`);
+        return;
+      }
+    }
+    setWarningMsg(null);
+  }
+
+  function handleSelectColor(colorCode: string) {
+    if (selectedColor === colorCode) {
+      setSelectedColor('');
+      setWarningMsg(null);
+      return;
+    }
+
+    setSelectedColor(colorCode);
+    if (selectedModel && colorCode) {
+      const isModelValid = p.variants?.some(
+        (v) => (!v.model || v.model === selectedModel) && v.color_code === colorCode
+      );
+      if (!isModelValid) {
+        const colorObj = allColors.find((c) => c.code === colorCode);
+        const colorNameStr = colorObj?.color || 'Selected Color';
+        setWarningMsg(`⚠️ ${colorNameStr} is not available for the selected ${selectedModel}. Please choose another color.`);
+        return;
+      }
+    }
+    setWarningMsg(null);
+  }
 
   async function handleLike() {
     if (liking) return;
@@ -54,7 +115,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
     setLiking(false);
   }
 
-  const colorName = uniqueColors.find((c) => c.code === selectedColor)?.color ?? '';
+  const colorName = allColors.find((c) => c.code === selectedColor)?.color ?? '';
   const orderMessage = `Hi Upanishad Mobile Store, I would like to reserve/order:
 - Product: ${p.name}
 - Price: ₹${p.price}
@@ -62,7 +123,6 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
 
   const num = whatsappNumber.replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${num}?text=${encodeURIComponent(orderMessage)}`;
-  const instagramUrl = ctxInstagramUrl;
 
   return (
     <div
@@ -133,43 +193,79 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
             <p className="font-body-md text-body-md text-smoke leading-relaxed">{p.description}</p>
           )}
 
-          {uniqueColors.length > 0 && (
+          {/* Model Selector */}
+          {allModels.length > 0 && (
             <div>
               <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">
-                Color {colorName ? `: ${colorName}` : ''}
+                1. Select Phone Model
               </p>
-              <div className="flex gap-2 flex-wrap">
-                {uniqueColors.map((c) => (
-                  <button
-                    key={c.code}
-                    onClick={() => setSelectedColor(c.code === selectedColor ? '' : c.code)}
-                    className={`w-8 h-8 rounded-full border-2 transition-all ${
-                      selectedColor === c.code ? 'border-ink-black scale-110' : 'border-ash hover:border-smoke'
-                    }`}
-                    style={{ backgroundColor: c.code }}
-                    aria-label={c.color}
-                    title={c.color}
-                  />
-                ))}
-              </div>
+              <select
+                value={selectedModel}
+                onChange={(e) => handleSelectModel(e.target.value)}
+                className="w-full border border-ash rounded px-3.5 py-2.5 font-body-md text-body-md text-ink-black bg-white focus:outline-none focus:border-ink-black transition-colors"
+              >
+                <option value="">-- Select Model --</option>
+                {allModels.map((m) => {
+                  const isAvailableForColor = availableModelsForColor.includes(m);
+                  return (
+                    <option key={m} value={m} disabled={selectedColor ? !isAvailableForColor : false}>
+                      {m} {selectedColor && !isAvailableForColor ? '(Not available in selected color)' : ''}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
           )}
 
-          {uniqueModels.length > 0 && (
+          {/* Color Swatches */}
+          {allColors.length > 0 && (
             <div>
-              <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">Model</p>
-              <select
-                value={selectedModel}
-                onChange={(e) => setSelectedModel(e.target.value)}
-                className="w-full border border-ash rounded px-3 py-2 font-body-md text-body-md text-ink-black bg-white focus:outline-none focus:border-ink-black transition-colors"
-              >
-                <option value="">Select model (e.g. iPhone 17, 16, 15...)</option>
-                {uniqueModels.map((m) => (
-                  <option key={m} value={m}>
-                    {m}
-                  </option>
-                ))}
-              </select>
+              <p className="font-label-sm text-label-sm text-smoke uppercase tracking-wider mb-2">
+                2. Select Color {colorName ? `: ${colorName}` : ''}
+              </p>
+              {availableColorsForModel.length === 0 && selectedModel ? (
+                <p className="font-sans text-body-sm text-amber-700 bg-amber-50 p-2.5 rounded border border-amber-200">
+                  No color variants available for this model.
+                </p>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  {allColors.map((c) => {
+                    const isAvailable = availableColorsForModel.some((ac) => ac.code === c.code);
+                    const isSelected = selectedColor === c.code;
+
+                    return (
+                      <button
+                        key={c.code}
+                        onClick={() => handleSelectColor(c.code)}
+                        className={`w-9 h-9 rounded-full border-2 transition-all relative ${
+                          isSelected
+                            ? 'border-ink-black scale-110 shadow-md ring-2 ring-ink-black/20'
+                            : isAvailable
+                            ? 'border-ash hover:border-smoke'
+                            : 'border-gray-200 opacity-35 cursor-not-allowed'
+                        }`}
+                        style={{ backgroundColor: c.code }}
+                        aria-label={c.color}
+                        title={isAvailable ? c.color : `${c.color} (Not available for ${selectedModel || 'this model'})`}
+                      >
+                        {!isAvailable && (
+                          <span className="absolute inset-0 flex items-center justify-center text-red-500 font-bold text-xs select-none">
+                            ✕
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Conditional Warning Banner */}
+          {warningMsg && (
+            <div className="p-3.5 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-2.5 text-amber-900 animate-fadeIn">
+              <span className="material-symbols-outlined text-lg text-amber-600 shrink-0 mt-0.5">warning</span>
+              <p className="font-sans text-body-sm font-semibold leading-snug">{warningMsg}</p>
             </div>
           )}
 
