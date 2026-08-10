@@ -148,9 +148,9 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
       } else {
         uiMissingElements.push('❌ Category modal missing ImageUploader component.');
       }
-      // Close modal
-      const closeBtn = page.locator('button:has-text("close")').first();
-      if (await closeBtn.count() > 0) await closeBtn.click();
+      // Close modal cleanly
+      await page.keyboard.press('Escape');
+      await page.waitForTimeout(300);
     }
 
     // 7. CRAWL ALL ADMIN ROUTES
