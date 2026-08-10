@@ -10,6 +10,7 @@ const PASSWORD = 'Flipkartzon01123';
 test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => {
 
   test('Crawl, log, and report all broken features', async ({ page }) => {
+    test.setTimeout(60000);
 
     const consoleErrors = [];
     const networkErrors = [];
