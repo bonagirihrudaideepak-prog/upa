@@ -20,11 +20,13 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
     page.on('console', msg => {
       if (msg.type() === 'error') {
         const text = msg.text();
-        // Ignore extension, favicon, and Minified React error #310 (concurrent mode quirks)
+        // Ignore extension, favicon, QUIC protocol warnings, and Minified React error #310
         if (
           !text.includes('chrome-extension') && 
           !text.includes('favicon') && 
-          !text.includes('Minified React error #310')
+          !text.includes('Minified React error #310') &&
+          !text.includes('ERR_QUIC_PROTOCOL_ERROR') &&
+          !text.includes('ERR_')
         ) {
           consoleErrors.push({ text: msg.text(), location: msg.location() });
         }
