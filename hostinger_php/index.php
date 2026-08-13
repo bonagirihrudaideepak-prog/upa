@@ -36,12 +36,12 @@ try {
     $pdo->exec("UPDATE categories SET name = 'All Brands', slug = 'all-brands' WHERE name = 'Oppo' OR slug = 'oppo'");
     $pdo->exec("UPDATE categories SET name = 'Accessories', slug = 'accessories' WHERE name = 'Vivo' OR slug = 'vivo'");
     $pdo->exec("UPDATE categories SET name = 'Gadgets', slug = 'gadgets' WHERE name = 'Cases' OR slug = 'cases'");
-    $pdo->exec("UPDATE categories SET name = 'Others', slug = 'others' WHERE name = 'Screenguard' OR slug = 'screenguard'");
+    $pdo->exec("UPDATE categories SET name = 'Others', slug = 'others' WHERE name LIKE '%screen%' OR slug LIKE '%screen%' OR name = 'Screenguard' OR slug = 'screenguard'");
 
     $pdo->exec("UPDATE products SET category = 'All Brands' WHERE category = 'Oppo'");
     $pdo->exec("UPDATE products SET category = 'Accessories' WHERE category = 'Vivo'");
     $pdo->exec("UPDATE products SET category = 'Gadgets' WHERE category = 'Cases'");
-    $pdo->exec("UPDATE products SET category = 'Others' WHERE category = 'Screenguard'");
+    $pdo->exec("UPDATE products SET category = 'Others' WHERE category LIKE '%screen%' OR category = 'Screenguard'");
 } catch (\Throwable $e) {
     // Migration safe fail
 }
