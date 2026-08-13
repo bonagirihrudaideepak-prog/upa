@@ -42,19 +42,22 @@ function jwtVerify(string $token): ?array {
     return $payload;
 }
 
-// Extract Bearer token from Authorization header
+// Extract Bearer or X-Admin-Token header defensively
 function getBearerToken(): ?string {
-    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? '';
-    if (empty($auth)) {
-        if (function_exists('apache_request_headers')) {
-            $headers = apache_request_headers();
-            $auth = $headers['Authorization'] ?? $headers['authorization'] ?? '';
-        }
+    if (!empty($_SERVER['HTTP_X_ADMIN_TOKEN'])) {
+        return trim($_SERVER['HTTP_X_ADMIN_TOKEN']);
+    }
+    $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '');
+    if (empty($auth) && function_exists('apache_request_headers')) {
+        $headers = apache_request_headers();
+        $auth = $headers['Authorization'] ?? ($headers['authorization'] ?? ($headers['X-Admin-Token'] ?? ($headers['x-admin-token'] ?? '')));
     }
     if (preg_match('/Bearer\s+(\S+)/i', $auth, $m)) {
         return $m[1];
     }
-    return $auth !== '' ? $auth : null;
+    if ($auth !== '') return $auth;
+    if (!empty($_GET['admin_token'])) return trim($_GET['admin_token']);
+    return null;
 }
 
 // Require admin auth; exits with 401 if missing/invalid, returns payload otherwise
