@@ -1,7 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SearchBar from '../Search/SearchBar';
 import { useApp } from '../../context/AppContext';
+import { api } from '../../utils/api';
+import type { Category } from '../../types';
 
 interface MobileMenuProps {
   open: boolean;
@@ -12,6 +14,14 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const { whatsappNumber, contactPhone, instagramUrl } = useApp();
   const waDigits = whatsappNumber.replace(/[^0-9]/g, '');
+
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    api.getCategories().then((res) => {
+      if (res.success && res.data) setCategories(res.data);
+    });
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -88,41 +98,16 @@ export default function MobileMenu({ open, onClose }: MobileMenuProps) {
               >
                 All Products
               </Link>
-              <Link
-                to="/category/iphone"
-                onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
-              >
-                iPhone
-              </Link>
-              <Link
-                to="/category/samsung"
-                onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
-              >
-                Samsung
-              </Link>
-              <Link
-                to="/category/accessories"
-                onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
-              >
-                Accessories
-              </Link>
-              <Link
-                to="/category/gadgets"
-                onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
-              >
-                Gadgets
-              </Link>
-              <Link
-                to="/category/others"
-                onClick={onClose}
-                className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
-              >
-                Others
-              </Link>
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  to={`/category/${cat.slug}`}
+                  onClick={onClose}
+                  className="font-sans text-body-md text-ink-black py-2.5 hover:text-smoke transition-colors"
+                >
+                  {cat.name}
+                </Link>
+              ))}
               
               <hr className="border-ash my-2" />
               
