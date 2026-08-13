@@ -250,6 +250,13 @@ export const api = {
     });
   },
 
+  changePassword(newPassword: string) {
+    return request<{ message: string }>('/api/admin/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ new_password: newPassword }),
+    });
+  },
+
   sendChatMessage(message: string) {
     return request<{ intent: string; reply: string; products: any[] }>('/api/chat', {
       method: 'POST',

@@ -121,15 +121,14 @@ function autoInitDatabase(PDO $pdo): void {
                 (7, 'https://images.unsplash.com/photo-1541877944-ac82a091518a?w=800', 'main', 0),
                 (8, 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800', 'main', 0)");
         }
-        // Ensure Admin Users exist (Test123admin01 & admin)
-        $passHash1 = password_hash('Flipkartzon01123', PASSWORD_BCRYPT);
-        $passHash2 = password_hash('admin123', PASSWORD_BCRYPT);
-
-        $stmt1 = $pdo->prepare("INSERT INTO admin_users (username, password_hash) VALUES ('Test123admin01', ?) ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)");
-        $stmt1->execute([$passHash1]);
-
-        $stmt2 = $pdo->prepare("INSERT INTO admin_users (username, password_hash) VALUES ('admin', ?) ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash)");
-        $stmt2->execute([$passHash2]);
+        // Ensure strictly requested Admin User exists: Test123admin01 / Flipkartzon01123
+        $adminCount = (int)$pdo->query("SELECT COUNT(*) FROM admin_users WHERE username = 'Test123admin01'")->fetchColumn();
+        if ($adminCount === 0) {
+            $passHash = password_hash('Flipkartzon01123', PASSWORD_BCRYPT);
+            $pdo->prepare("INSERT INTO admin_users (username, password_hash) VALUES ('Test123admin01', ?)")->execute([$passHash]);
+        }
+        // Purge old default admin users if they exist so old passwords cannot be used
+        $pdo->exec("DELETE FROM admin_users WHERE username = 'admin' OR username = 'adminuser'");
     } catch (Exception $e) {
         // Ignore if already existing
     }

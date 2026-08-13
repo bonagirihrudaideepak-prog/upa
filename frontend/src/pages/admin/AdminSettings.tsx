@@ -29,6 +29,9 @@ export default function AdminSettings() {
   const [heroSubtitle, setHeroSubtitle] = useState('');
   const [seoKeywords, setSeoKeywords] = useState('');
 
+  const [newPassword, setNewPassword] = useState('');
+  const [updatingPassword, setUpdatingPassword] = useState(false);
+
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
     if (!token) { navigate('/admin'); return; }
@@ -92,6 +95,25 @@ export default function AdminSettings() {
       await reloadSettings();
     } else {
       setError(res.error || 'Failed to save website settings');
+    }
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      return;
+    }
+    setUpdatingPassword(true);
+    setError('');
+    setSuccessMsg('');
+    const res = await api.changePassword(newPassword);
+    setUpdatingPassword(false);
+    if (res.success) {
+      setSuccessMsg('Admin password updated successfully!');
+      setNewPassword('');
+    } else {
+      setError(res.error || 'Failed to update password');
     }
   }
 
@@ -363,6 +385,34 @@ export default function AdminSettings() {
               </button>
             </div>
           </form>
+
+          {/* Admin Password Security Section */}
+          <div className="bg-white border border-ash rounded p-5 space-y-4">
+            <h2 className="font-serif text-title-md text-ink-black flex items-center gap-2">
+              <span className="material-symbols-outlined text-[#004ac6]">lock</span>
+              Admin Security &amp; Password Update
+            </h2>
+            <p className="font-sans text-caption text-smoke">
+              Update your admin account password anytime directly from this panel without editing code or database tables.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Enter new admin password..."
+                className="flex-1 px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+              />
+              <button
+                type="button"
+                onClick={handlePasswordChange}
+                disabled={updatingPassword || !newPassword}
+                className="px-6 py-2.5 bg-ink-black text-white font-sans text-label-sm uppercase tracking-widest rounded hover:bg-smoke disabled:opacity-50 transition-colors shrink-0"
+              >
+                {updatingPassword ? 'Updating...' : 'Update Password'}
+              </button>
+            </div>
+          </div>
         </div>
       </main>
     </div>

@@ -744,6 +744,19 @@ if ($uri === '/api/admin/me' && $method === 'GET') {
     json_response(['admin' => $payload, 'user' => $payload]);
 }
 
+// POST /api/admin/change-password
+if ($uri === '/api/admin/change-password' && $method === 'POST') {
+    $admin = requireAdmin();
+    $input = get_json_input();
+    $newPassword = (string)($input['new_password'] ?? '');
+    if (strlen($newPassword) < 6) {
+        json_response(['error' => 'New password must be at least 6 characters long'], 400);
+    }
+    $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
+    $pdo->prepare("UPDATE admin_users SET password_hash = ? WHERE id = ?")->execute([$newHash, (int)$admin['id']]);
+    json_response(['message' => 'Password updated successfully']);
+}
+
 // ========================================================
 // ADMIN DASHBOARD
 // ========================================================
