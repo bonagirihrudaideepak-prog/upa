@@ -214,7 +214,7 @@ test.describe('FULL SITE AUTO-DEBUG - Comprehensive Admin & Store Audit', () => 
       try {
         await page.goto(fullUrl, { timeout: 10000, waitUntil: 'networkidle' });
         const bodyText = await page.textContent('body');
-        if (bodyText.includes('500') || bodyText.includes('Server Error') || bodyText.includes('Fatal error')) {
+        if (bodyText.includes('Internal Server Error') || bodyText.includes('500 Internal') || bodyText.includes('Fatal error') || bodyText.includes('Parse error:')) {
           uiMissingElements.push(`❌ Server Error 500 detected on route: ${route}`);
         } else {
           console.log(`   ✅ Route OK: ${route}`);
