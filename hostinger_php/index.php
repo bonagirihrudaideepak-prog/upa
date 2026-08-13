@@ -225,6 +225,108 @@ function format_product(array $p, PDO $pdo): array {
     ];
 }
 
+// Bulk eager loader: Eliminates N+1 database queries when fetching product lists
+function format_products_eager(array $products, PDO $pdo): array {
+    if (empty($products)) return [];
+
+    $productIds = array_column($products, 'id');
+    $inClause = implode(',', array_fill(0, count($productIds), '?'));
+
+    // 1. Bulk query images
+    $imagesByProduct = [];
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM product_images WHERE product_id IN ($inClause) ORDER BY display_order ASC");
+        $stmt->execute($productIds);
+        foreach ($stmt->fetchAll() as $img) {
+            $imagesByProduct[$img['product_id']][] = $img;
+        }
+    } catch (\Throwable $e) {}
+
+    // 2. Bulk query variants
+    $variantsByProduct = [];
+    try {
+        $stmt = $pdo->prepare("SELECT * FROM product_variants WHERE product_id IN ($inClause)");
+        $stmt->execute($productIds);
+        foreach ($stmt->fetchAll() as $v) {
+            $variantsByProduct[$v['product_id']][] = $v;
+        }
+    } catch (\Throwable $e) {}
+
+    // 3. Map in memory with zero N+1 database calls
+    return array_map(function ($p) use ($imagesByProduct, $variantsByProduct) {
+        $pid = (int)$p['id'];
+        $rawImages = $imagesByProduct[$pid] ?? [];
+        $rawVariants = $variantsByProduct[$pid] ?? [];
+
+        $mainImage = null;
+        $imageList = [];
+        foreach ($rawImages as $img) {
+            if (($img['image_type'] ?? '') === 'main' && $mainImage === null) {
+                $mainImage = $img['image_path'];
+            }
+            $imageList[] = [
+                'id'              => (int)$img['id'],
+                'product_id'      => $pid,
+                'image_path'      => $img['image_path'],
+                'image_type'      => $img['image_type'],
+                'is_original_1_1' => (bool)($img['is_original_1_1'] ?? false),
+                'is_original_3_4' => (bool)($img['is_original_3_4'] ?? false),
+                'display_order'   => (int)($img['display_order'] ?? 0),
+            ];
+        }
+        if ($mainImage === null && count($imageList) > 0) {
+            $mainImage = $imageList[0]['image_path'];
+        }
+
+        $variants = array_map(function ($v) {
+            return [
+                'id'         => (int)$v['id'],
+                'product_id' => (int)$v['product_id'],
+                'color'      => $v['color'],
+                'color_code' => $v['color_code'],
+                'model'      => $v['model'] ?? null,
+                'stock'      => (int)$v['stock'],
+            ];
+        }, $rawVariants);
+
+        $modelList = [];
+        if (isset($p['models']) && !empty($p['models'])) {
+            $decodedModels = is_string($p['models']) ? json_decode($p['models'], true) : $p['models'];
+            if (is_array($decodedModels)) {
+                foreach ($decodedModels as $m) {
+                    if (is_string($m) && trim($m) !== '') $modelList[] = trim($m);
+                }
+            }
+        }
+        foreach ($variants as $v) {
+            if (isset($v['model']) && !empty($v['model']) && trim($v['model']) !== '') {
+                $modelList[] = trim($v['model']);
+            }
+        }
+        $modelList = array_values(array_unique(array_filter($modelList)));
+
+        return [
+            'id'             => $pid,
+            'name'           => $p['name'],
+            'description'    => $p['description'] ?? null,
+            'sku'            => $p['sku'] ?? null,
+            'price'          => (float)$p['price'],
+            'category'       => $p['category'],
+            'stock'          => (int)($p['stock'] ?? 0),
+            'is_featured'    => (bool)($p['is_featured'] ?? false),
+            'is_new_arrival' => (bool)($p['is_new_arrival'] ?? false),
+            'is_offer'       => (bool)($p['is_offer'] ?? false),
+            'is_out_of_stock'=> (bool)($p['is_out_of_stock'] ?? false),
+            'likes_count'    => (int)($p['likes_count'] ?? 0),
+            'created_at'     => $p['created_at'] ?? null,
+            'main_image'     => $mainImage,
+            'images'         => $imageList,
+            'variants'       => $variants,
+            'models'         => $modelList,
+        ];
+    }, $products);
+}
+
 // Parse `variants` and `models` inputs into clean variant database rows
 function parse_all_variants_and_models(array $inputData): array {
     $result = [];
@@ -496,13 +598,13 @@ if ((preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'DE
 // GET /api/products/featured
 if ($uri === '/api/products/featured' && $method === 'GET') {
     $rows = $pdo->query("SELECT * FROM products WHERE is_featured = 1 ORDER BY created_at DESC")->fetchAll();
-    json_response(array_map(fn($p) => format_product($p, $pdo), $rows));
+    json_response(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/new-arrivals (Auto-rotating top 12 newest products)
 if ($uri === '/api/products/new-arrivals' && $method === 'GET') {
     $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC, id DESC LIMIT 12")->fetchAll();
-    json_response(array_map(fn($p) => format_product($p, $pdo), $rows));
+    json_response(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/search?q=
@@ -517,7 +619,7 @@ if ($uri === '/api/products/search' && $method === 'GET') {
          ORDER BY created_at DESC LIMIT 30"
     );
     $stmt->execute([$like, $like, $like, $like]);
-    json_response(array_map(fn($p) => format_product($p, $pdo), $stmt->fetchAll()));
+    json_response(format_products_eager($stmt->fetchAll(), $pdo));
 }
 
 // GET /api/products/category/{slug-or-name}
@@ -530,7 +632,7 @@ if (preg_match('#^/api/products/category/([^/]+)$#i', $uri, $m) && $method === '
 
     $stmt = $pdo->prepare("SELECT * FROM products WHERE category = ? OR category = ? ORDER BY created_at DESC");
     $stmt->execute([$catName, $catParam]);
-    json_response(array_map(fn($p) => format_product($p, $pdo), $stmt->fetchAll()));
+    json_response(format_products_eager($stmt->fetchAll(), $pdo));
 }
 
 // GET /api/products?category=
@@ -544,10 +646,11 @@ if ($uri === '/api/products' && $method === 'GET') {
 
         $stmt = $pdo->prepare("SELECT * FROM products WHERE category = ? OR category = ? ORDER BY created_at DESC");
         $stmt->execute([$catName, $category]);
+        $rows = $stmt->fetchAll();
     } else {
-        $stmt = $pdo->query("SELECT * FROM products ORDER BY created_at DESC");
+        $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC")->fetchAll();
     }
-    json_response(array_map(fn($p) => format_product($p, $pdo), $stmt->fetchAll()));
+    json_response(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/{id}/reviews  (must come before generic /{id})
@@ -835,7 +938,7 @@ if ($uri === '/api/admin/dashboard' && $method === 'GET') {
 if ($uri === '/api/admin/products' && $method === 'GET') {
     requireAdmin();
     $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC")->fetchAll();
-    json_response(array_map(fn($p) => format_product($p, $pdo), $rows));
+    json_response(format_products_eager($rows, $pdo));
 }
 
 // POST /api/admin/products/{id}/toggle-featured (admin)
