@@ -102,8 +102,8 @@ export default function LandingPage() {
     }
   }
 
-  // Display limits: 4 on mobile, 8 on desktop (big screens)
-  const displayLimit = isMobile ? 4 : 8;
+  // Display limits: 8 items on both mobile and desktop
+  const displayLimit = 8;
 
   // New Arrivals showing strictly top 8 max (or 4 on mobile)
   const newArrivalsList = useMemo(() => {

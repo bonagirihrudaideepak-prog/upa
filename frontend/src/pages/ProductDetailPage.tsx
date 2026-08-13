@@ -154,6 +154,13 @@ export default function ProductDetailPage() {
     );
   }
 
+  const allImages = product.images && product.images.length > 0
+    ? product.images.map((img) => getImageUrl(img.image_path))
+    : (product.main_image ? [getImageUrl(product.main_image)] : []);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const currentDisplayImage = allImages[activeImageIndex] || allImages[0] || '';
+
   // Extract all unique colors and models
   const allColors = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
     if (v.color_code && !acc.find((c) => c.code === v.color_code)) {
@@ -245,11 +252,11 @@ export default function ProductDetailPage() {
           </button>
 
           <div className="max-w-2xl mx-auto">
-            {/* Product Image */}
-            <div className="aspect-[4/3] relative overflow-hidden bg-cream-paper border border-ash rounded mb-6">
-              {imageUrl ? (
+            {/* Product Image Gallery */}
+            <div className="aspect-[4/3] relative overflow-hidden bg-cream-paper border border-ash rounded mb-3">
+              {currentDisplayImage ? (
                 <img
-                  src={imageUrl}
+                  src={currentDisplayImage}
                   alt={product.name}
                   className="w-full h-full object-contain mix-blend-multiply"
                 />
@@ -259,6 +266,24 @@ export default function ProductDetailPage() {
                 </div>
               )}
             </div>
+
+            {/* Additional Image Thumbnails */}
+            {allImages.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto mb-6 pb-1 no-scrollbar">
+                {allImages.map((imgUrl, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`w-16 h-16 rounded border overflow-hidden p-1 transition-all shrink-0 bg-white ${
+                      activeImageIndex === idx ? 'border-[#004ac6] ring-2 ring-[#004ac6]/30' : 'border-ash hover:border-smoke'
+                    }`}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Product Info */}
             <div className="flex flex-col gap-5">

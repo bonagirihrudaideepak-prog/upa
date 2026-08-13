@@ -407,8 +407,63 @@ export default function AdminProductForm() {
               <div>
                 <h2 className="font-serif text-title-md text-ink-black mb-1">Product Models</h2>
                 <p className="font-sans text-caption text-smoke">
-                  Add the different models of this product (e.g. iPhone 17, iPhone 17 Pro, iPhone 17 Pro Max, iPhone 17 E). These appear in the "Select Model" dropdown on the product page.
+                  Select popular phone model presets or type custom model names. These appear in the "Select Model" dropdown on the product detail page.
                 </p>
+              </div>
+
+              {/* Model Presets Quick Dropdown */}
+              <div className="bg-[#f0f4ff] border border-[#d0e0ff] rounded-xl p-3.5 space-y-2">
+                <label className="font-sans text-caption font-bold text-[#004ac6] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-base">smartphone</span>
+                  Quick Add Popular Phone Models
+                </label>
+                <select
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val) {
+                      if (!models.includes(val)) {
+                        setModels((prev) => [...prev, val]);
+                      }
+                      e.target.value = '';
+                    }
+                  }}
+                  className="w-full px-3 py-2 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                >
+                  <option value="">-- Choose a Preset Phone Model to Add --</option>
+                  <optgroup label="🍎 Apple iPhone Series">
+                    <option value="iPhone 17 Pro Max">iPhone 17 Pro Max</option>
+                    <option value="iPhone 17 Pro">iPhone 17 Pro</option>
+                    <option value="iPhone 17">iPhone 17</option>
+                    <option value="iPhone 17 Plus">iPhone 17 Plus</option>
+                    <option value="iPhone 16 Pro Max">iPhone 16 Pro Max</option>
+                    <option value="iPhone 16 Pro">iPhone 16 Pro</option>
+                    <option value="iPhone 16">iPhone 16</option>
+                    <option value="iPhone 15 Pro Max">iPhone 15 Pro Max</option>
+                    <option value="iPhone 15 Pro">iPhone 15 Pro</option>
+                    <option value="iPhone 15">iPhone 15</option>
+                    <option value="iPhone 14 Pro Max">iPhone 14 Pro Max</option>
+                    <option value="iPhone 14">iPhone 14</option>
+                    <option value="iPhone 13">iPhone 13</option>
+                  </optgroup>
+                  <optgroup label="📱 Samsung Galaxy Series">
+                    <option value="Samsung Galaxy S25 Ultra">Samsung Galaxy S25 Ultra</option>
+                    <option value="Samsung Galaxy S25+">Samsung Galaxy S25+</option>
+                    <option value="Samsung Galaxy S25">Samsung Galaxy S25</option>
+                    <option value="Samsung Galaxy S24 Ultra">Samsung Galaxy S24 Ultra</option>
+                    <option value="Samsung Galaxy S24+">Samsung Galaxy S24+</option>
+                    <option value="Samsung Galaxy S24">Samsung Galaxy S24</option>
+                    <option value="Samsung Galaxy S23 Ultra">Samsung Galaxy S23 Ultra</option>
+                  </optgroup>
+                  <optgroup label="⚡ OnePlus & Other Brands">
+                    <option value="OnePlus 13">OnePlus 13</option>
+                    <option value="OnePlus 13R">OnePlus 13R</option>
+                    <option value="OnePlus 12">OnePlus 12</option>
+                    <option value="OnePlus 12R">OnePlus 12R</option>
+                    <option value="OnePlus Nord 4">OnePlus Nord 4</option>
+                    <option value="Xiaomi 15 Pro">Xiaomi 15 Pro</option>
+                    <option value="Realme GT 7 Pro">Realme GT 7 Pro</option>
+                  </optgroup>
+                </select>
               </div>
 
               <div className="flex gap-2">
@@ -417,7 +472,7 @@ export default function AdminProductForm() {
                   value={modelInput}
                   onChange={(e) => setModelInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addModel(); } }}
-                  placeholder="e.g. iPhone 17, iPhone 17 Pro, iPhone 17 Pro Max"
+                  placeholder="Or type custom model name (e.g. iPhone 17 Pro Max)..."
                   className="flex-1 px-3.5 py-2 border border-ash rounded font-sans text-body-sm focus:outline-none focus:border-[#004ac6]"
                 />
                 <button
@@ -425,7 +480,7 @@ export default function AdminProductForm() {
                   onClick={addModel}
                   className="px-4 py-2 bg-ink-black text-white font-sans text-label-sm rounded hover:bg-smoke transition-colors uppercase tracking-wider"
                 >
-                  Add
+                  Add Custom
                 </button>
               </div>
 

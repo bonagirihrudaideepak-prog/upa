@@ -32,7 +32,12 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
   if (!isOpen || !product) return null;
 
   const p = product;
-  const imageUrl = p.images?.[0] ? getImageUrl(p.images[0].image_path) : (p.main_image ? getImageUrl(p.main_image) : '');
+  const allImages = p.images && p.images.length > 0
+    ? p.images.map((img) => getImageUrl(img.image_path))
+    : (p.main_image ? [getImageUrl(p.main_image)] : []);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const currentDisplayImage = allImages[activeImageIndex] || allImages[0] || '';
 
   // Extract all unique colors and models
   const allColors = p.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
@@ -147,9 +152,9 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
         </button>
 
         <div className="aspect-[4/3] relative overflow-hidden bg-cream-paper">
-          {imageUrl ? (
+          {currentDisplayImage ? (
             <img
-              src={imageUrl}
+              src={currentDisplayImage}
               alt={p.name}
               className="w-full h-full object-contain mix-blend-multiply"
             />
@@ -164,6 +169,23 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
             </div>
           )}
         </div>
+
+        {allImages.length > 1 && (
+          <div className="flex gap-2 overflow-x-auto px-6 pt-3 no-scrollbar">
+            {allImages.map((imgUrl, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setActiveImageIndex(idx)}
+                className={`w-14 h-14 rounded border overflow-hidden p-1 transition-all shrink-0 bg-white ${
+                  activeImageIndex === idx ? 'border-[#004ac6] ring-2 ring-[#004ac6]/30' : 'border-ash hover:border-smoke'
+                }`}
+              >
+                <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} className="w-full h-full object-contain mix-blend-multiply" />
+              </button>
+            ))}
+          </div>
+        )}
 
         <div className="p-6 flex flex-col gap-5">
           <div className="flex justify-between items-start gap-4">

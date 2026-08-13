@@ -44,7 +44,7 @@ export default function Footer() {
               {storeName}
             </Link>
             <p className="font-sans text-label-sm uppercase tracking-widest text-smoke">
-              Store Pickup Only • Premium Smartphones, Cases &amp; Accessories
+              Store Pickup Only • Premium Cases &amp; Accessories
             </p>
           </div>
 
@@ -131,7 +131,7 @@ export default function Footer() {
             &copy; {new Date().getFullYear()} {storeName}. All rights reserved.
           </p>
           <p className="font-sans text-caption text-smoke text-center sm:text-right">
-            Store Takeaway &amp; Pickup Orders Only
+            Store Pickup Only
           </p>
         </div>
 

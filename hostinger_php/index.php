@@ -31,6 +31,21 @@ require_once __DIR__ . '/config/auth.php';
 
 $pdo = getDatabaseConnection();
 
+// Run Category Migration & Renaming (Oppo -> All Brands, Vivo -> Accessories, Cases -> Gadgets, Screenguard -> Others)
+try {
+    $pdo->exec("UPDATE categories SET name = 'All Brands', slug = 'all-brands' WHERE name = 'Oppo' OR slug = 'oppo'");
+    $pdo->exec("UPDATE categories SET name = 'Accessories', slug = 'accessories' WHERE name = 'Vivo' OR slug = 'vivo'");
+    $pdo->exec("UPDATE categories SET name = 'Gadgets', slug = 'gadgets' WHERE name = 'Cases' OR slug = 'cases'");
+    $pdo->exec("UPDATE categories SET name = 'Others', slug = 'others' WHERE name = 'Screenguard' OR slug = 'screenguard'");
+
+    $pdo->exec("UPDATE products SET category = 'All Brands' WHERE category = 'Oppo'");
+    $pdo->exec("UPDATE products SET category = 'Accessories' WHERE category = 'Vivo'");
+    $pdo->exec("UPDATE products SET category = 'Gadgets' WHERE category = 'Cases'");
+    $pdo->exec("UPDATE products SET category = 'Others' WHERE category = 'Screenguard'");
+} catch (\Throwable $e) {
+    // Migration safe fail
+}
+
 $rawUri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 $uri = preg_replace('#^/index\.php#i', '', $rawUri);
 if (isset($_SERVER['PATH_INFO']) && (empty($uri) || strpos($uri, '/api') !== 0)) {
@@ -172,6 +187,23 @@ function format_product(array $p, PDO $pdo): array {
         ];
     }, $stmt->fetchAll());
 
+    // Extract all unique phone models cleanly
+    $modelList = [];
+    if (!empty($p['models'])) {
+        $decodedModels = is_string($p['models']) ? json_decode($p['models'], true) : $p['models'];
+        if (is_array($decodedModels)) {
+            foreach ($decodedModels as $m) {
+                if (is_string($m) && trim($m) !== '') $modelList[] = trim($m);
+            }
+        }
+    }
+    foreach ($variants as $v) {
+        if (!empty($v['model']) && trim($v['model']) !== '') {
+            $modelList[] = trim($v['model']);
+        }
+    }
+    $modelList = array_values(array_unique(array_filter($modelList)));
+
     return [
         'id'             => $id,
         'name'           => $p['name'],
@@ -189,7 +221,7 @@ function format_product(array $p, PDO $pdo): array {
         'main_image'     => $mainImage,
         'images'         => $imageList,
         'variants'       => $variants,
-        'models'         => array_values(array_unique(array_filter(array_map(fn($v) => $v['model'], $variants)))),
+        'models'         => $modelList,
     ];
 }
 
@@ -443,8 +475,9 @@ if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && ($method === 'PU
     json_response(format_category($stmt->fetch()));
 }
 
-// DELETE /api/admin/categories/{id} (admin) — delete category
-if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'DELETE') {
+// DELETE /api/admin/categories/{id} or POST /api/admin/categories/{id}/delete (admin) — delete category
+if ((preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'DELETE') ||
+    (preg_match('#^/api/admin/categories/(\d+)/delete$#i', $uri, $m) && ($method === 'POST' || $method === 'DELETE'))) {
     requireAdmin();
     $id = (int)$m[1];
     $stmt = $pdo->prepare("SELECT * FROM categories WHERE id = ?");
