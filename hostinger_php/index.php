@@ -75,6 +75,25 @@ function json_response($data, int $status = 200): void {
     exit;
 }
 
+// High-Performance CDN Edge Cached Response Handler with HTTP ETag Validation
+function json_response_cached($data, int $status = 200, int $maxAge = 60, int $sMaxAge = 300): void {
+    $json = json_encode($data, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    $etag = '"' . md5($json) . '"';
+
+    header('Content-Type: application/json; charset=utf-8');
+    header("Cache-Control: public, max-age={$maxAge}, s-maxage={$sMaxAge}, stale-while-revalidate=600");
+    header("ETag: {$etag}");
+
+    if (isset($_SERVER['HTTP_IF_NONE_MATCH']) && trim($_SERVER['HTTP_IF_NONE_MATCH']) === $etag) {
+        http_response_code(304);
+        exit;
+    }
+
+    http_response_code($status);
+    echo $json;
+    exit;
+}
+
 function get_json_input(): array {
     $raw = file_get_contents('php://input');
     if (empty($raw)) return $_POST;
@@ -598,13 +617,13 @@ if ((preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'DE
 // GET /api/products/featured
 if ($uri === '/api/products/featured' && $method === 'GET') {
     $rows = $pdo->query("SELECT * FROM products WHERE is_featured = 1 ORDER BY created_at DESC")->fetchAll();
-    json_response(format_products_eager($rows, $pdo));
+    json_response_cached(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/new-arrivals (Auto-rotating top 12 newest products)
 if ($uri === '/api/products/new-arrivals' && $method === 'GET') {
     $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC, id DESC LIMIT 12")->fetchAll();
-    json_response(format_products_eager($rows, $pdo));
+    json_response_cached(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/search?q=
@@ -619,7 +638,7 @@ if ($uri === '/api/products/search' && $method === 'GET') {
          ORDER BY created_at DESC LIMIT 30"
     );
     $stmt->execute([$like, $like, $like, $like]);
-    json_response(format_products_eager($stmt->fetchAll(), $pdo));
+    json_response_cached(format_products_eager($stmt->fetchAll(), $pdo));
 }
 
 // GET /api/products/category/{slug-or-name}
@@ -632,7 +651,7 @@ if (preg_match('#^/api/products/category/([^/]+)$#i', $uri, $m) && $method === '
 
     $stmt = $pdo->prepare("SELECT * FROM products WHERE category = ? OR category = ? ORDER BY created_at DESC");
     $stmt->execute([$catName, $catParam]);
-    json_response(format_products_eager($stmt->fetchAll(), $pdo));
+    json_response_cached(format_products_eager($stmt->fetchAll(), $pdo));
 }
 
 // GET /api/products?category=
@@ -650,7 +669,7 @@ if ($uri === '/api/products' && $method === 'GET') {
     } else {
         $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC")->fetchAll();
     }
-    json_response(format_products_eager($rows, $pdo));
+    json_response_cached(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/{id}/reviews  (must come before generic /{id})
