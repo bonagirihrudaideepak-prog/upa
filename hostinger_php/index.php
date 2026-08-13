@@ -189,7 +189,7 @@ function format_product(array $p, PDO $pdo): array {
 
     // Extract all unique phone models cleanly
     $modelList = [];
-    if (!empty($p['models'])) {
+    if (isset($p['models']) && !empty($p['models'])) {
         $decodedModels = is_string($p['models']) ? json_decode($p['models'], true) : $p['models'];
         if (is_array($decodedModels)) {
             foreach ($decodedModels as $m) {
@@ -198,7 +198,7 @@ function format_product(array $p, PDO $pdo): array {
         }
     }
     foreach ($variants as $v) {
-        if (!empty($v['model']) && trim($v['model']) !== '') {
+        if (isset($v['model']) && !empty($v['model']) && trim($v['model']) !== '') {
             $modelList[] = trim($v['model']);
         }
     }
@@ -750,45 +750,56 @@ if ($uri === '/api/admin/me' && $method === 'GET') {
 if ($uri === '/api/admin/dashboard' && $method === 'GET') {
     requireAdmin();
 
-    $totalProducts   = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
-    $totalCategories = (int)$pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
-    $totalReviews    = (int)$pdo->query("SELECT COUNT(*) FROM reviews")->fetchColumn();
-    $activeOffers    = (int)$pdo->query("SELECT COUNT(*) FROM offers WHERE is_active = 1")->fetchColumn();
-    $outOfStock      = (int)$pdo->query("SELECT COUNT(*) FROM products WHERE is_out_of_stock = 1")->fetchColumn();
-    $totalLikes      = (int)($pdo->query("SELECT COALESCE(SUM(likes_count), 0) FROM products")->fetchColumn());
-    $totalInventory  = (int)($pdo->query("SELECT COALESCE(SUM(stock), 0) FROM products")->fetchColumn());
+    $totalProducts   = 0;
+    $totalCategories = 0;
+    $totalReviews    = 0;
+    $activeOffers    = 0;
+    $outOfStock      = 0;
+    $totalLikes      = 0;
+    $totalInventory  = 0;
+    $recentProducts  = [];
+    $topLiked        = [];
 
-    // Recent products (with images attached)
-    $recent = $pdo->query(
-        "SELECT id, name, price, stock, category, is_out_of_stock, created_at
-         FROM products ORDER BY created_at DESC LIMIT 5"
-    )->fetchAll();
+    try { $totalProducts   = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn(); } catch (\Throwable $e) {}
+    try { $totalCategories = (int)$pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn(); } catch (\Throwable $e) {}
+    try { $totalReviews    = (int)$pdo->query("SELECT COUNT(*) FROM reviews")->fetchColumn(); } catch (\Throwable $e) {}
+    try { $activeOffers    = (int)$pdo->query("SELECT COUNT(*) FROM offers WHERE is_active = 1")->fetchColumn(); } catch (\Throwable $e) {}
+    try { $outOfStock      = (int)$pdo->query("SELECT COUNT(*) FROM products WHERE is_out_of_stock = 1")->fetchColumn(); } catch (\Throwable $e) {}
+    try { $totalLikes      = (int)($pdo->query("SELECT COALESCE(SUM(likes_count), 0) FROM products")->fetchColumn()); } catch (\Throwable $e) {}
+    try { $totalInventory  = (int)($pdo->query("SELECT COALESCE(SUM(stock), 0) FROM products")->fetchColumn()); } catch (\Throwable $e) {}
 
-    $recentProducts = [];
-    foreach ($recent as $p) {
-        $pid = (int)$p['id'];
-        $stmt = $pdo->prepare("SELECT * FROM product_images WHERE product_id = ?");
-        $stmt->execute([$pid]);
-        $recentProducts[] = [
-            'id'              => $pid,
-            'name'            => $p['name'],
-            'price'           => (float)$p['price'],
-            'stock'           => (int)$p['stock'],
-            'category'        => $p['category'],
-            'is_out_of_stock' => (bool)$p['is_out_of_stock'],
-            'created_at'      => $p['created_at'],
-            'images'          => $stmt->fetchAll(),
-        ];
-    }
+    try {
+        $recent = $pdo->query(
+            "SELECT id, name, price, stock, category, is_out_of_stock, created_at
+             FROM products ORDER BY created_at DESC LIMIT 5"
+        )->fetchAll();
 
-    // Top liked
-    $topLiked = array_map(function ($p) {
-        return [
-            'id'          => (int)$p['id'],
-            'name'        => $p['name'],
-            'likes_count' => (int)$p['likes_count'],
-        ];
-    }, $pdo->query("SELECT id, name, likes_count FROM products ORDER BY likes_count DESC LIMIT 5")->fetchAll());
+        foreach ($recent as $p) {
+            $pid = (int)$p['id'];
+            $stmt = $pdo->prepare("SELECT * FROM product_images WHERE product_id = ?");
+            $stmt->execute([$pid]);
+            $recentProducts[] = [
+                'id'              => $pid,
+                'name'            => $p['name'],
+                'price'           => (float)$p['price'],
+                'stock'           => (int)$p['stock'],
+                'category'        => $p['category'],
+                'is_out_of_stock' => (bool)$p['is_out_of_stock'],
+                'created_at'      => $p['created_at'],
+                'images'          => $stmt->fetchAll(),
+            ];
+        }
+    } catch (\Throwable $e) {}
+
+    try {
+        $topLiked = array_map(function ($p) {
+            return [
+                'id'          => (int)$p['id'],
+                'name'        => $p['name'],
+                'likes_count' => (int)$p['likes_count'],
+            ];
+        }, $pdo->query("SELECT id, name, likes_count FROM products ORDER BY likes_count DESC LIMIT 5")->fetchAll());
+    } catch (\Throwable $e) {}
 
     json_response([
         'total_products'   => $totalProducts,
