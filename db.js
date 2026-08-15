@@ -319,9 +319,9 @@ async function initDb() {
     const catCount = await db('categories').count('id as count').first();
     if (!catCount || parseInt(catCount.count) === 0) {
       await db('categories').insert([
-        { name: 'Electronics', slug: 'electronics', description: 'Electronic devices and accessories', display_order: 1, is_active: true },
-        { name: 'iPhone', slug: 'iphone', description: 'Apple iPhone devices and covers', display_order: 2, is_active: true },
-        { name: 'Samsung', slug: 'samsung', description: 'Samsung smartphones and covers', display_order: 3, is_active: true },
+        { name: 'iPhone', slug: 'iphone', description: 'Apple iPhone devices and covers', display_order: 1, is_active: true },
+        { name: 'Samsung', slug: 'samsung', description: 'Samsung smartphones and covers', display_order: 2, is_active: true },
+        { name: 'All Brands', slug: 'all-brands', description: 'All brand smartphones and covers', display_order: 3, is_active: true },
         { name: 'Accessories', slug: 'accessories', description: 'Covers, cases, tempered glass & protectors', display_order: 4, is_active: true },
         { name: 'Gadgets', slug: 'gadgets', description: 'Smartwatches, earbuds & fast chargers', display_order: 5, is_active: true },
         { name: 'Others', slug: 'others', description: 'Other electronic items & accessories', display_order: 6, is_active: true }

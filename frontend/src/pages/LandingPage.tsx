@@ -233,7 +233,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <ProductGrid
-            products={allProducts.slice(0, displayLimit * 2)}
+            products={allProducts}
             loading={allProductsLoading}
             onLike={handleLike}
             onAddToCart={handleAddToCart}

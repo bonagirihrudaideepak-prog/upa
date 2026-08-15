@@ -62,27 +62,21 @@ function autoInitDatabase(PDO $pdo): void {
         try { $pdo->exec("ALTER TABLE `product_images` ADD INDEX `idx_prod_order` (`product_id`, `display_order` ASC)"); } catch (Exception $e) {}
         try { $pdo->exec("ALTER TABLE `product_variants` ADD INDEX `idx_prod_var` (`product_id`)"); } catch (Exception $e) {}
 
-        // Ensure requested categories exist with featured images
-        $desiredCategories = [
-            ['name' => 'iPhone',        'slug' => 'iphone',        'description' => 'Apple iPhone smartphones, covers & accessories', 'image' => 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800', 'order' => 1],
-            ['name' => 'Samsung',       'slug' => 'samsung',       'description' => 'Samsung smartphones, cases & accessories',       'image' => 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800', 'order' => 2],
-            ['name' => 'Oppo',          'slug' => 'oppo',          'description' => 'Oppo smartphones & accessories',                'image' => 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800', 'order' => 3],
-            ['name' => 'Vivo',          'slug' => 'vivo',          'description' => 'Vivo smartphones & accessories',                'image' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800', 'order' => 4],
-            ['name' => 'Cases',         'slug' => 'cases',         'description' => 'Premium phone back covers, cases & pouches',     'image' => 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=800', 'order' => 5],
-            ['name' => 'Screen Guards', 'slug' => 'screen-guards', 'description' => 'Tempered glass, screen guards & lens protectors', 'image' => 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800', 'order' => 6],
-        ];
+        // Seed default categories if table is empty
+        $catCount = (int)$pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+        if ($catCount === 0) {
+            $desiredCategories = [
+                ['name' => 'iPhone',      'slug' => 'iphone',      'description' => 'Apple iPhone smartphones, covers & accessories', 'image' => 'https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800', 'order' => 1],
+                ['name' => 'Samsung',     'slug' => 'samsung',     'description' => 'Samsung smartphones, cases & accessories',       'image' => 'https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800', 'order' => 2],
+                ['name' => 'All Brands',  'slug' => 'all-brands',  'description' => 'All brand smartphones & accessories',            'image' => 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800', 'order' => 3],
+                ['name' => 'Accessories', 'slug' => 'accessories', 'description' => 'Premium phone accessories & attachments',       'image' => 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800', 'order' => 4],
+                ['name' => 'Gadgets',     'slug' => 'gadgets',     'description' => 'Smart gadgets, chargers & items',                'image' => 'https://images.unsplash.com/photo-1603313011101-320f26a4f6f6?w=800', 'order' => 5],
+                ['name' => 'Others',      'slug' => 'others',      'description' => 'Other electronic products & screen protectors',  'image' => 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800', 'order' => 6],
+            ];
 
-        $stmtCheck = $pdo->prepare("SELECT id FROM categories WHERE slug = ? OR name = ?");
-        $stmtInsert = $pdo->prepare("INSERT INTO categories (name, slug, description, image_path, display_order, is_active) VALUES (?, ?, ?, ?, ?, 1)");
-        $stmtUpdate = $pdo->prepare("UPDATE categories SET image_path = ?, description = ?, display_order = ? WHERE id = ?");
-
-        foreach ($desiredCategories as $cat) {
-            $stmtCheck->execute([$cat['slug'], $cat['name']]);
-            $existing = $stmtCheck->fetch();
-            if (!$existing) {
+            $stmtInsert = $pdo->prepare("INSERT INTO categories (name, slug, description, image_path, display_order, is_active) VALUES (?, ?, ?, ?, ?, 1)");
+            foreach ($desiredCategories as $cat) {
                 $stmtInsert->execute([$cat['name'], $cat['slug'], $cat['description'], $cat['image'], $cat['order']]);
-            } else {
-                $stmtUpdate->execute([$cat['image'], $cat['description'], $cat['order'], (int)$existing['id']]);
             }
         }
 

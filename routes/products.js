@@ -56,9 +56,13 @@ function parseVariants(input) {
 router.get('/products/featured', async (req, res) => {
   try {
     const products = await db('products')
-      .where('is_featured', true)
-      .orWhere('is_featured', 1)
-      .orderBy('created_at', 'desc');
+      .innerJoin('categories', 'products.category', 'categories.name')
+      .where('categories.is_active', true)
+      .andWhere(function() {
+        this.where('products.is_featured', true).orWhere('products.is_featured', 1);
+      })
+      .select('products.*')
+      .orderBy('products.created_at', 'desc');
     const result = await attachImagesAndVariants(products);
     res.json(result);
   } catch (err) {
@@ -68,13 +72,14 @@ router.get('/products/featured', async (req, res) => {
 });
 
 // 2. New Arrivals (auto-rotating: always the most recently added products, capped at 12).
-//    No manual flag needed — the newest uploaded products show here and older ones
-//    naturally fade out as newer items are added.
 router.get('/products/new-arrivals', async (req, res) => {
   try {
     const products = await db('products')
-      .orderBy('created_at', 'desc')
-      .orderBy('id', 'desc')
+      .innerJoin('categories', 'products.category', 'categories.name')
+      .where('categories.is_active', true)
+      .select('products.*')
+      .orderBy('products.created_at', 'desc')
+      .orderBy('products.id', 'desc')
       .limit(12);
     const result = await attachImagesAndVariants(products);
     res.json(result);
@@ -93,24 +98,29 @@ router.get('/products/search', async (req, res) => {
     }
     
     const clientType = db.client.config.client;
-    let productsQuery = db('products');
+    let productsQuery = db('products')
+      .innerJoin('categories', 'products.category', 'categories.name')
+      .where('categories.is_active', true);
 
     if (clientType === 'pg') {
-      productsQuery = productsQuery
-        .where('name', 'ILIKE', `%${query}%`)
-        .orWhere('description', 'ILIKE', `%${query}%`)
-        .orWhere('sku', 'ILIKE', `%${query}%`)
-        .orWhere('category', 'ILIKE', `%${query}%`);
+      productsQuery = productsQuery.andWhere(function() {
+        this.where('products.name', 'ILIKE', `%${query}%`)
+          .orWhere('products.description', 'ILIKE', `%${query}%`)
+          .orWhere('products.sku', 'ILIKE', `%${query}%`)
+          .orWhere('products.category', 'ILIKE', `%${query}%`);
+      });
     } else {
-      productsQuery = productsQuery
-        .where('name', 'like', `%${query}%`)
-        .orWhere('description', 'like', `%${query}%`)
-        .orWhere('sku', 'like', `%${query}%`)
-        .orWhere('category', 'like', `%${query}%`);
+      productsQuery = productsQuery.andWhere(function() {
+        this.where('products.name', 'like', `%${query}%`)
+          .orWhere('products.description', 'like', `%${query}%`)
+          .orWhere('products.sku', 'like', `%${query}%`)
+          .orWhere('products.category', 'like', `%${query}%`);
+      });
     }
 
     const products = await productsQuery
-      .orderBy('created_at', 'desc')
+      .select('products.*')
+      .orderBy('products.created_at', 'desc')
       .limit(30);
 
     const result = await attachImagesAndVariants(products);
@@ -133,9 +143,14 @@ router.get('/products/category/:category', async (req, res) => {
     const categoryName = catObj ? catObj.name : categoryParam;
 
     const products = await db('products')
-      .where('category', categoryName)
-      .orWhere('category', categoryParam)
-      .orderBy('created_at', 'desc');
+      .innerJoin('categories', 'products.category', 'categories.name')
+      .where('categories.is_active', true)
+      .andWhere(function() {
+        this.where('products.category', categoryName)
+          .orWhere('products.category', categoryParam);
+      })
+      .select('products.*')
+      .orderBy('products.created_at', 'desc');
     const result = await attachImagesAndVariants(products);
     res.json(result);
   } catch (err) {
@@ -148,13 +163,20 @@ router.get('/products/category/:category', async (req, res) => {
 router.get('/products', async (req, res) => {
   try {
     const category = req.query.category;
-    let query = db('products').orderBy('created_at', 'desc');
+    let queryBuilder = db('products')
+      .innerJoin('categories', 'products.category', 'categories.name')
+      .where('categories.is_active', true);
+
     if (category) {
       const catObj = await db('categories').where('slug', category).orWhere('name', category).first();
       const categoryName = catObj ? catObj.name : category;
-      query = query.where('category', categoryName).orWhere('category', category);
+      queryBuilder = queryBuilder.andWhere(function() {
+        this.where('products.category', categoryName).orWhere('products.category', category);
+      });
     }
-    const products = await query;
+    const products = await queryBuilder
+      .select('products.*')
+      .orderBy('products.created_at', 'desc');
     const result = await attachImagesAndVariants(products);
     res.json(result);
   } catch (err) {
@@ -171,7 +193,13 @@ router.get('/products/:id', async (req, res) => {
       return res.status(400).json({ error: 'Invalid product ID' });
     }
 
-    const product = await db('products').where('id', id).first();
+    const product = await db('products')
+      .innerJoin('categories', 'products.category', 'categories.name')
+      .where('categories.is_active', true)
+      .andWhere('products.id', id)
+      .select('products.*')
+      .first();
+
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }

@@ -163,8 +163,8 @@ export default function ProductDetailPage() {
 
   // Extract all unique colors and models
   const allColors = product.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
-    if (v.color_code && !acc.find((c) => c.code === v.color_code)) {
-      acc.push({ color: v.color || 'Default', code: v.color_code });
+    if (v.color_code && v.color !== 'Default' && v.color !== '' && !acc.find((c) => c.code === v.color_code)) {
+      acc.push({ color: v.color, code: v.color_code });
     }
     return acc;
   }, []) ?? [];
@@ -396,26 +396,20 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* SKU / Category */}
-              <div className="flex items-center gap-4 text-caption text-smoke">
-                {product.sku && (
-                  <span>
-                    <span className="font-label-sm text-label-sm uppercase tracking-wider">SKU: </span>
-                    {product.sku}
-                  </span>
-                )}
-                {product.is_out_of_stock && (
-                  <span className="text-red-500 font-label-sm text-label-sm uppercase tracking-wider">
+              {/* Out of Stock notice */}
+              {product.is_out_of_stock && (
+                <div className="flex items-center gap-4 text-caption text-smoke">
+                  <span className="text-red-500 font-label-sm text-label-sm uppercase tracking-wider font-semibold">
                     Out of Stock
                   </span>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Pickup Notice */}
               <div className="flex items-start gap-3 p-4 bg-butter-highlight/30 border border-butter-highlight rounded">
                 <span className="material-symbols-outlined text-lg text-smoke shrink-0 mt-0.5">info</span>
                 <p className="font-body-md text-body-md text-smoke">
-                  Store only accepts pickups/takeaways. Message us on WhatsApp or call to inquire about availability.
+                  Store only accepts pickups. Message us on WhatsApp or call to inquire about availability.
                 </p>
               </div>
 

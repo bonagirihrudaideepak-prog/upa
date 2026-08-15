@@ -41,8 +41,8 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
 
   // Extract all unique colors and models
   const allColors = p.variants?.reduce<{ color: string; code: string }[]>((acc, v) => {
-    if (v.color_code && !acc.find((c) => c.code === v.color_code)) {
-      acc.push({ color: v.color || 'Default', code: v.color_code });
+    if (v.color_code && v.color !== 'Default' && v.color !== '' && !acc.find((c) => c.code === v.color_code)) {
+      acc.push({ color: v.color, code: v.color_code });
     }
     return acc;
   }, []) ?? [];
@@ -124,7 +124,7 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
   const orderMessage = `Hi Upanishad Mobile Store, I would like to reserve/order:
 - Product: ${p.name}
 - Price: ₹${p.price}
-${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${colorName}\n` : ''}- Order Type: Store Pickup / Takeaway`;
+${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${colorName}\n` : ''}- Order Type: Store Pickup`;
 
   const num = whatsappNumber.replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${num}?text=${encodeURIComponent(orderMessage)}`;
@@ -292,12 +292,6 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
           )}
 
           <div className="flex items-center gap-4 text-caption text-smoke">
-            {p.sku && (
-              <span>
-                <span className="font-label-sm text-label-sm uppercase tracking-wider">SKU: </span>
-                {p.sku}
-              </span>
-            )}
             {p.category && (
               <span>
                 <span className="font-label-sm text-label-sm uppercase tracking-wider">Category: </span>
@@ -306,12 +300,12 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
             )}
           </div>
 
-          {/* Store Pickup & Takeaway Actions */}
+          {/* Store Pickup Only Actions */}
           <div className="bg-[#fcf8f2] border border-[#f5c6cb] rounded p-4 space-y-3">
             <div className="flex items-start gap-2.5">
               <span className="material-symbols-outlined text-[#856404] text-xl">store</span>
               <div>
-                <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup & Takeaway Only</p>
+                <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup Only</p>
                 <p className="font-sans text-caption text-[#856404] mt-0.5">
                   Connect directly via WhatsApp or Call to confirm product availability and details!
                 </p>

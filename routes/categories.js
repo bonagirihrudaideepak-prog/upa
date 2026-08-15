@@ -77,7 +77,12 @@ router.put('/admin/categories/:id', verifyAdmin, async (req, res) => {
     const { name, slug, description, display_order, is_active, image_path } = req.body || {};
     const updates = {};
 
-    if (name !== undefined) updates.name = name;
+    if (name !== undefined) {
+      updates.name = name;
+      if (existing.name !== name) {
+        await db('products').where('category', existing.name).update({ category: name });
+      }
+    }
     if (slug !== undefined) updates.slug = slug;
     if (description !== undefined) updates.description = description;
     if (image_path !== undefined) updates.image_path = image_path;

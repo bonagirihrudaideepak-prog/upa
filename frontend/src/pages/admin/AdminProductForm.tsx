@@ -62,17 +62,28 @@ export default function AdminProductForm() {
   const [images, setImages] = useState<ImageEntry[]>([]);
   const [urlInput, setUrlInput] = useState('');
   const [categories, setCategories] = useState<Category[]>([]);
+  const [customPresets, setCustomPresets] = useState<string[]>([]);
 
   useEffect(() => {
     const token = localStorage.getItem('admin_token');
     if (!token) { navigate('/admin'); return; }
     loadCategories();
+    loadSettings();
     if (isEdit) loadProduct();
   }, [id, isEdit, navigate]);
 
   async function loadCategories() {
     const res = await api.getCategories();
     if (res.success && res.data) setCategories(res.data);
+  }
+
+  async function loadSettings() {
+    const res = await api.getSettings();
+    if (res.success && res.data && res.data.custom_phone_models) {
+      const raw = res.data.custom_phone_models;
+      const parsed = raw.split(/[,\n]/).map((m: string) => m.trim()).filter(Boolean);
+      setCustomPresets(parsed);
+    }
   }
 
   async function loadProduct() {
@@ -463,6 +474,13 @@ export default function AdminProductForm() {
                     <option value="Xiaomi 15 Pro">Xiaomi 15 Pro</option>
                     <option value="Realme GT 7 Pro">Realme GT 7 Pro</option>
                   </optgroup>
+                  {customPresets.length > 0 && (
+                    <optgroup label="⚙️ Custom Admin Presets">
+                      {customPresets.map((preset) => (
+                        <option key={preset} value={preset}>{preset}</option>
+                      ))}
+                    </optgroup>
+                  )}
                 </select>
               </div>
 

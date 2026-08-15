@@ -28,6 +28,7 @@ export default function AdminSettings() {
   const [heroTitle, setHeroTitle] = useState('');
   const [heroSubtitle, setHeroSubtitle] = useState('');
   const [seoKeywords, setSeoKeywords] = useState('');
+  const [customPhoneModels, setCustomPhoneModels] = useState('');
 
   const [newPassword, setNewPassword] = useState('');
   const [updatingPassword, setUpdatingPassword] = useState(false);
@@ -58,6 +59,7 @@ export default function AdminSettings() {
       setHeroTitle(s.hero_title || '');
       setHeroSubtitle(s.hero_subtitle || '');
       setSeoKeywords(s.seo_keywords || '');
+      setCustomPhoneModels(s.custom_phone_models || '');
     } else {
       setError(res.error || 'Failed to load site settings');
     }
@@ -85,6 +87,7 @@ export default function AdminSettings() {
       hero_title: heroTitle.trim(),
       hero_subtitle: heroSubtitle.trim(),
       seo_keywords: seoKeywords.trim(),
+      custom_phone_models: customPhoneModels.trim(),
     };
 
     const res = await api.updateSettings(payload);
@@ -370,6 +373,26 @@ export default function AdminSettings() {
                 />
                 <p className="font-sans text-caption text-smoke mt-1.5">
                   These keywords display at the bottom of every page (below the footer) and are injected into the page's SEO meta tags to help search engines understand your store.
+                </p>
+              </div>
+            </div>
+
+            {/* Phone Model Presets Section */}
+            <div className="bg-white border border-ash rounded p-5 space-y-5">
+              <h2 className="font-serif text-title-md text-ink-black">Phone Model Presets</h2>
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Custom Phone Models List (One per line or comma-separated)
+                </label>
+                <textarea
+                  value={customPhoneModels}
+                  onChange={(e) => setCustomPhoneModels(e.target.value)}
+                  rows={4}
+                  placeholder="e.g. iPhone 17 Pro Max, Samsung Galaxy S25 Ultra, OnePlus 13"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-y"
+                />
+                <p className="font-sans text-caption text-smoke mt-1.5">
+                  Add custom phone models here. These will show up as selectable options in the "Quick Add Popular Phone Models" dropdown when adding or editing products in the admin panel.
                 </p>
               </div>
             </div>

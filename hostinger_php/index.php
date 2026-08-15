@@ -31,17 +31,22 @@ require_once __DIR__ . '/config/auth.php';
 
 $pdo = getDatabaseConnection();
 
-// Run Category Migration & Renaming (Oppo -> All Brands, Vivo -> Accessories, Cases -> Gadgets, Screenguard -> Others)
+// Run Category Migration & Renaming (Oppo -> All Brands, Vivo -> Accessories, Cases -> Gadgets, Screenguard -> Others) exactly once
 try {
-    $pdo->exec("UPDATE categories SET name = 'All Brands', slug = 'all-brands' WHERE name = 'Oppo' OR slug = 'oppo'");
-    $pdo->exec("UPDATE categories SET name = 'Accessories', slug = 'accessories' WHERE name = 'Vivo' OR slug = 'vivo'");
-    $pdo->exec("UPDATE categories SET name = 'Gadgets', slug = 'gadgets' WHERE name = 'Cases' OR slug = 'cases'");
-    $pdo->exec("UPDATE categories SET name = 'Others', slug = 'others' WHERE name LIKE '%screen%' OR slug LIKE '%screen%' OR name = 'Screenguard' OR slug = 'screenguard'");
+    $migrationCheck = (int)$pdo->query("SELECT COUNT(*) FROM site_settings WHERE setting_key = 'categories_renamed_2026'")->fetchColumn();
+    if ($migrationCheck === 0) {
+        $pdo->exec("UPDATE categories SET name = 'All Brands', slug = 'all-brands' WHERE name = 'Oppo' OR slug = 'oppo'");
+        $pdo->exec("UPDATE categories SET name = 'Accessories', slug = 'accessories' WHERE name = 'Vivo' OR slug = 'vivo'");
+        $pdo->exec("UPDATE categories SET name = 'Gadgets', slug = 'gadgets' WHERE name = 'Cases' OR slug = 'cases'");
+        $pdo->exec("UPDATE categories SET name = 'Others', slug = 'others' WHERE name LIKE '%screen%' OR slug LIKE '%screen%' OR name = 'Screenguard' OR slug = 'screenguard'");
 
-    $pdo->exec("UPDATE products SET category = 'All Brands' WHERE category = 'Oppo'");
-    $pdo->exec("UPDATE products SET category = 'Accessories' WHERE category = 'Vivo'");
-    $pdo->exec("UPDATE products SET category = 'Gadgets' WHERE category = 'Cases'");
-    $pdo->exec("UPDATE products SET category = 'Others' WHERE category LIKE '%screen%' OR category = 'Screenguard'");
+        $pdo->exec("UPDATE products SET category = 'All Brands' WHERE category = 'Oppo'");
+        $pdo->exec("UPDATE products SET category = 'Accessories' WHERE category = 'Vivo'");
+        $pdo->exec("UPDATE products SET category = 'Gadgets' WHERE category = 'Cases'");
+        $pdo->exec("UPDATE products SET category = 'Others' WHERE category LIKE '%screen%' OR category = 'Screenguard'");
+
+        $pdo->exec("INSERT INTO site_settings (setting_key, setting_value) VALUES ('categories_renamed_2026', '1')");
+    }
 } catch (\Throwable $e) {
     // Migration safe fail
 }
@@ -431,6 +436,7 @@ function save_uploaded_images(string $fieldName): array {
         }
         $filename = 'prod_' . time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
         if (move_uploaded_file($tmp, $uploadDir . '/' . $filename)) {
+            chmod($uploadDir . '/' . $filename, 0644);
             $saved[] = 'uploads/' . $filename;
         }
     }
@@ -580,7 +586,17 @@ if (preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && ($method === 'PU
         $params[] = $input['image_path'];
     }
 
-    if (isset($input['name']))          { $updates[] = 'name = ?';          $params[] = trim($input['name']); }
+    if (isset($input['name'])) {
+        $newName = trim($input['name']);
+        $oldStmt = $pdo->prepare("SELECT name FROM categories WHERE id = ?");
+        $oldStmt->execute([$id]);
+        $oldCat = $oldStmt->fetch();
+        if ($oldCat && $oldCat['name'] !== $newName) {
+            $pdo->prepare("UPDATE products SET category = ? WHERE category = ?")->execute([$newName, $oldCat['name']]);
+        }
+        $updates[] = 'name = ?';
+        $params[] = $newName;
+    }
     if (isset($input['slug']))          { $updates[] = 'slug = ?';          $params[] = slugify($input['slug']); }
     if (array_key_exists('description', $input)) { $updates[] = 'description = ?';  $params[] = $input['description']; }
     if (isset($input['display_order'])) { $updates[] = 'display_order = ?'; $params[] = (int)$input['display_order']; }
@@ -616,13 +632,13 @@ if ((preg_match('#^/api/admin/categories/(\d+)$#i', $uri, $m) && $method === 'DE
 
 // GET /api/products/featured
 if ($uri === '/api/products/featured' && $method === 'GET') {
-    $rows = $pdo->query("SELECT * FROM products WHERE is_featured = 1 ORDER BY created_at DESC")->fetchAll();
+    $rows = $pdo->query("SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name WHERE p.is_featured = 1 AND c.is_active = 1 ORDER BY p.created_at DESC")->fetchAll();
     json_response_cached(format_products_eager($rows, $pdo));
 }
 
 // GET /api/products/new-arrivals (Auto-rotating top 12 newest products)
 if ($uri === '/api/products/new-arrivals' && $method === 'GET') {
-    $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC, id DESC LIMIT 12")->fetchAll();
+    $rows = $pdo->query("SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name WHERE c.is_active = 1 ORDER BY p.created_at DESC, p.id DESC LIMIT 12")->fetchAll();
     json_response_cached(format_products_eager($rows, $pdo));
 }
 
@@ -634,8 +650,9 @@ if ($uri === '/api/products/search' && $method === 'GET') {
     }
     $like = '%' . $q . '%';
     $stmt = $pdo->prepare(
-        "SELECT * FROM products WHERE name LIKE ? OR description LIKE ? OR sku LIKE ? OR category LIKE ?
-         ORDER BY created_at DESC LIMIT 30"
+        "SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name
+         WHERE c.is_active = 1 AND (p.name LIKE ? OR p.description LIKE ? OR p.sku LIKE ? OR p.category LIKE ?)
+         ORDER BY p.created_at DESC LIMIT 30"
     );
     $stmt->execute([$like, $like, $like, $like]);
     json_response_cached(format_products_eager($stmt->fetchAll(), $pdo));
@@ -649,7 +666,7 @@ if (preg_match('#^/api/products/category/([^/]+)$#i', $uri, $m) && $method === '
     $catObj = $stmt->fetch();
     $catName = $catObj ? $catObj['name'] : $catParam;
 
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE category = ? OR category = ? ORDER BY created_at DESC");
+    $stmt = $pdo->prepare("SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name WHERE c.is_active = 1 AND (p.category = ? OR p.category = ?) ORDER BY p.created_at DESC");
     $stmt->execute([$catName, $catParam]);
     json_response_cached(format_products_eager($stmt->fetchAll(), $pdo));
 }
@@ -663,11 +680,11 @@ if ($uri === '/api/products' && $method === 'GET') {
         $catObj = $stmt->fetch();
         $catName = $catObj ? $catObj['name'] : $category;
 
-        $stmt = $pdo->prepare("SELECT * FROM products WHERE category = ? OR category = ? ORDER BY created_at DESC");
+        $stmt = $pdo->prepare("SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name WHERE c.is_active = 1 AND (p.category = ? OR p.category = ?) ORDER BY p.created_at DESC");
         $stmt->execute([$catName, $category]);
         $rows = $stmt->fetchAll();
     } else {
-        $rows = $pdo->query("SELECT * FROM products ORDER BY created_at DESC")->fetchAll();
+        $rows = $pdo->query("SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name WHERE c.is_active = 1 ORDER BY p.created_at DESC")->fetchAll();
     }
     json_response_cached(format_products_eager($rows, $pdo));
 }
@@ -686,7 +703,7 @@ if (preg_match('#^/api/products/(\d+)/reviews$#i', $uri, $m) && $method === 'GET
 // GET /api/products/{id}
 if (preg_match('#^/api/products/(\d+)$#i', $uri, $m) && $method === 'GET') {
     $id = (int)$m[1];
-    $stmt = $pdo->prepare("SELECT * FROM products WHERE id = ?");
+    $stmt = $pdo->prepare("SELECT p.* FROM products p INNER JOIN categories c ON p.category = c.name WHERE p.id = ? AND c.is_active = 1");
     $stmt->execute([$id]);
     $product = $stmt->fetch();
     if (!$product) {
@@ -988,8 +1005,8 @@ if ($uri === '/api/admin/products' && $method === 'POST') {
     }
 
     $pdo->prepare(
-        "INSERT INTO products (name, description, sku, price, category, stock, is_featured, is_new_arrival, is_offer, is_out_of_stock, likes_count)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO products (name, description, sku, price, category, stock, models, is_featured, is_new_arrival, is_offer, is_out_of_stock, likes_count)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
     )->execute([
         $name,
         $input['description'] ?? null,
@@ -997,6 +1014,7 @@ if ($uri === '/api/admin/products' && $method === 'POST') {
         (float)$price,
         $category,
         (int)($input['stock'] ?? 0),
+        isset($input['models']) ? (is_array($input['models']) ? json_encode($input['models']) : $input['models']) : null,
         to_bool($input['is_featured'] ?? false) ? 1 : 0,
         isset($input['is_new_arrival']) ? (to_bool($input['is_new_arrival']) ? 1 : 0) : 1,
         to_bool($input['is_offer'] ?? false) ? 1 : 0,
@@ -1043,12 +1061,16 @@ if (preg_match('#^/api/admin/products/(\d+)$#i', $uri, $m) && ($method === 'PUT'
     $updates = [];
     $params = [];
 
-    $allowedFields = ['name', 'description', 'sku', 'price', 'stock', 'likes_count'];
+    $allowedFields = ['name', 'description', 'sku', 'price', 'stock', 'likes_count', 'models', 'category'];
     foreach ($allowedFields as $field) {
         if (isset($input[$field])) {
             if ($field === 'price')       { $updates[] = 'price = ?';        $params[] = (float)$input[$field]; }
             elseif ($field === 'stock')   { $updates[] = 'stock = ?';        $params[] = (int)$input[$field]; }
             elseif ($field === 'likes_count') { $updates[] = 'likes_count = ?'; $params[] = (int)$input[$field]; }
+            elseif ($field === 'models') {
+                $updates[] = 'models = ?';
+                $params[] = is_array($input[$field]) ? json_encode($input[$field]) : $input[$field];
+            }
             else                          { $updates[] = "$field = ?";       $params[] = $input[$field]; }
         }
     }
