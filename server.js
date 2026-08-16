@@ -17,8 +17,16 @@ const uploadRouter = require('./routes/upload');
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// Enable CORS
-app.use(cors());
+// Enable CORS restricted to explicit allowed origins (never reflect arbitrary origins).
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://upanishadmobiles.com,http://localhost:5173,http://localhost:10000')
+  .split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({
+  origin(origin, cb) {
+    if (!origin || allowedOrigins.includes(origin)) return cb(null, true);
+    return cb(new Error('Origin not allowed by CORS'));
+  },
+  credentials: false,
+}));
 
 // Gzip compression — 70-80% bandwidth savings
 app.use(compression());
@@ -30,6 +38,8 @@ app.use((req, res, next) => {
   res.setHeader('X-Frame-Options', 'SAMEORIGIN');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.setHeader("Content-Security-Policy", "default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self'; connect-src 'self'");
   if (req.secure || req.headers['x-forwarded-proto'] === 'https') {
     res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   }

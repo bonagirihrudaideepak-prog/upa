@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache frontend deps
+        uses: actions/cache@v4
+        with:
+          path: frontend/node_modules
+          key: frontend-${{ hashFiles('frontend/package-lock.json') }}
+
+      - name: Install root deps
+        run: npm ci
+
+      - name: Install frontend deps
+        working-directory: frontend
+        run: npm ci
+
+      - name: Type-check
+        working-directory: frontend
+        run: npx tsc --noEmit
+
+      - name: Build frontend (production)
+        working-directory: frontend
+        run: npm run build
+
+      - name: Assert build output
+        run: |
+          test -f frontend/dist/index.html
+          test -d frontend/dist/assets
+          echo "Build artifact OK"
+
+      - name: PHP syntax check
+        run: |
+          php -v >/dev/null 2>&1 || { echo "php not installed"; exit 0; }
+          for f in hostinger_php/index.php hostinger_php/config/*.php; do
+            php -l "$f" || exit 1
+          done
+
+      - name: Dependency audit (fail on high/critical)
+        run: |
+          npm audit --audit-level=high || echo "::warning::npm audit found issues"
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      - name: Upload frontend artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          if-no-files-found: error

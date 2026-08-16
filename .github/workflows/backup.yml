@@ -1,0 +1,45 @@
+name: Backup Database
+
+on:
+  schedule:
+    - cron: '30 2 * * *'   # daily 02:30 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write   # to upload backup to a GitHub Release
+
+jobs:
+  backup:
+    name: Encrypted DB Backup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create backup
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          BACKUP_ENC_KEY: ${{ secrets.BACKUP_ENCRYPTION_KEY }}
+        run: |
+          set -euo pipefail
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          FILE="upanishad-${TS}.sql.gz.gpg"
+          command -v mysql mysqldump gpg gzip
+          mysqldump --single-transaction --routines --triggers \
+            -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" \
+            | gzip -9 \
+            | gpg --batch --yes --symmetric --cipher-algo AES256 \
+                  --passphrase "$BACKUP_ENC_KEY" -o "$FILE"
+          ls -lh "$FILE"
+          echo "BACKUP_FILE=$FILE" >> "$GITHUB_ENV"
+          echo "Backup created: $FILE"
+
+      - name: Upload backup to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: backup-${{ env.BACKUP_FILE }}
+          files: ${{ env.BACKUP_FILE }}
+          name: "DB Backup ${{ env.BACKUP_FILE }}"
+          body: "Automated encrypted MySQL backup. Decrypt with BACKUP_ENCRYPTION_KEY."
+          draft: false
+          prerelease: false

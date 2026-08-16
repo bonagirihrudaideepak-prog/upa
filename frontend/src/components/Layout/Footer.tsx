@@ -13,6 +13,9 @@ export default function Footer() {
     locationMapUrl,
     storeName,
     seoKeywords,
+    footerTagline,
+    pickupLabel,
+    footerCopyright,
   } = useApp();
 
   // Inject SEO keywords + store name into the document meta tags for better search indexing.
@@ -44,7 +47,7 @@ export default function Footer() {
               {storeName}
             </Link>
             <p className="font-sans text-label-sm uppercase tracking-widest text-smoke">
-              Store Pickup Only • Premium Cases &amp; Accessories
+              {footerTagline}
             </p>
           </div>
 
@@ -128,10 +131,10 @@ export default function Footer() {
         {/* Copyright */}
         <div className="mt-10 pt-6 border-t border-ash flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="font-sans text-label-sm uppercase tracking-widest text-smoke text-center sm:text-left">
-            &copy; {new Date().getFullYear()} {storeName}. All rights reserved.
+            &copy; {new Date().getFullYear()} {storeName}. {footerCopyright}
           </p>
           <p className="font-sans text-caption text-smoke text-center sm:text-right">
-            Store Pickup Only
+            {pickupLabel}
           </p>
         </div>
 

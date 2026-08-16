@@ -28,3 +28,20 @@ DirectoryIndex index.html index.php
     RewriteCond %{REQUEST_URI} !^/api
     RewriteRule ^ index.html [QSA,L]
 </IfModule>
+
+# ========================================================
+# Harden the uploads directory
+# ========================================================
+<DirectoryMatch "^.*/uploads(/|$)">
+    # Never execute PHP (or any server-side scripts) from user uploads
+    <IfModule mod_php.c>
+        php_flag engine off
+    </IfModule>
+    <FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|pl|py|cgi|sh)$">
+        Require all denied
+    </FilesMatch>
+    # Force browsers to respect the served content type (prevents MIME-sniffing)
+    <IfModule mod_headers.c>
+        Header set X-Content-Type-Options "nosniff"
+    </IfModule>
+</DirectoryMatch>

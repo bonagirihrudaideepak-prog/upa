@@ -106,10 +106,11 @@ INSERT INTO `site_settings` (`setting_key`, `setting_value`) VALUES
 ('hero_subtitle', 'Store Pickup & Takeaway Only • Premium Smartphones, Cases & Accessories')
 ON DUPLICATE KEY UPDATE `setting_value`=VALUES(`setting_value`);
 
--- Admin User: Test123admin01 / Flipkartzon01123
-INSERT INTO `admin_users` (`username`, `password_hash`) VALUES
-('Test123admin01', '$2y$10$e0MYzXyjpJS7Pd0RVvHwHe4X8lQ/7eGZ4P0h.wZ5/V6eQ6yK6Zg6m')
-ON DUPLICATE KEY UPDATE `password_hash`=VALUES(`password_hash`);
+-- Admin User: seeded at runtime from ADMIN_USERNAME / ADMIN_PASSWORD env vars
+-- (see config/database.php autoInitDatabase). No hardcoded credentials are
+-- committed. For a fresh install, set ADMIN_USERNAME + ADMIN_PASSWORD env vars
+-- (or config/credentials.php) before first request, or insert a bcrypt hash here:
+-- INSERT INTO `admin_users` (`username`, `password_hash`) VALUES ('<user>', '<bcrypt_hash>');
 
 -- Categories
 INSERT INTO `categories` (`id`, `name`, `slug`, `description`, `display_order`, `is_active`) VALUES

@@ -23,6 +23,17 @@ interface SiteSettings {
   heroTitle: string;
   heroSubtitle: string;
   seoKeywords: string;
+  footerTagline: string;
+  pickupNotice: string;
+  pickupLabel: string;
+  searchPlaceholder: string;
+  chatGreeting: string;
+  contactWhatsAppMessage: string;
+  homeCategoriesTitle: string;
+  homeFeaturedTitle: string;
+  homeNewArrivalsTitle: string;
+  homeAllProductsTitle: string;
+  footerCopyright: string;
 }
 
 const DEFAULT_SETTINGS: SiteSettings = {
@@ -40,6 +51,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
   heroTitle: 'Modern Tech, Curated for You',
   heroSubtitle: 'Store Pickup Only • Premium Cases & Accessories',
   seoKeywords: '',
+  footerTagline: 'Store Pickup Only • Premium Cases & Accessories',
+  pickupNotice: 'Store only accepts pickups. Message us on WhatsApp or call to inquire about availability.',
+  pickupLabel: 'Store Pickup Only',
+  searchPlaceholder: 'Search Upanishad Mobiles...',
+  chatGreeting: '👋 Hi! I\'m your AI Shopping Assistant. Ask me about products, prices, colors, or availability!',
+  contactWhatsAppMessage: 'Hi Upanishad Mobile Store, I would like to reserve/order:',
+  homeCategoriesTitle: 'Shop by Category',
+  homeFeaturedTitle: 'Top Recommended',
+  homeNewArrivalsTitle: 'New Arrivals',
+  homeAllProductsTitle: 'All Products',
+  footerCopyright: 'All rights reserved.',
 };
 
 interface AppContextValue extends SiteSettings {
@@ -88,6 +110,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
           heroTitle: s.hero_title || prev.heroTitle,
           heroSubtitle: s.hero_subtitle || prev.heroSubtitle,
           seoKeywords: s.seo_keywords || prev.seoKeywords,
+          footerTagline: s.footer_tagline || prev.footerTagline,
+          pickupNotice: s.pickup_notice || prev.pickupNotice,
+          pickupLabel: s.pickup_label || prev.pickupLabel,
+          searchPlaceholder: s.search_placeholder || prev.searchPlaceholder,
+          chatGreeting: s.chat_greeting || prev.chatGreeting,
+          contactWhatsAppMessage: s.contact_whatsapp_message || prev.contactWhatsAppMessage,
+          homeCategoriesTitle: s.home_categories_title || prev.homeCategoriesTitle,
+          homeFeaturedTitle: s.home_featured_title || prev.homeFeaturedTitle,
+          homeNewArrivalsTitle: s.home_new_arrivals_title || prev.homeNewArrivalsTitle,
+          homeAllProductsTitle: s.home_all_products_title || prev.homeAllProductsTitle,
+          footerCopyright: s.footer_copyright || prev.footerCopyright,
         }));
       }
     } catch (e) {

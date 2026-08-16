@@ -15,13 +15,13 @@ export default function AIChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
   const [inputMsg, setInputMsg] = useState('');
   const [isThinking, setIsThinking] = useState(false);
-  const { whatsappNumber } = useApp();
+  const { whatsappNumber, storeName, chatGreeting, contactWhatsAppMessage } = useApp();
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'welcome-1',
       sender: 'bot',
-      text: "👋 Hi! I'm your AI Shopping Assistant for **Upanishad Mobiles**. Ask me anything like:\n\n• *\"Show me iPhone 17 Pro Max in Brown\"*\n• *\"Does iPhone 17 Pro Max have Titanium Gray?\"*\n• *\"Phones under ₹80,000\"*",
+      text: chatGreeting,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
@@ -78,7 +78,7 @@ export default function AIChatWidget() {
 
   function handleOrderWhatsApp(product: Product) {
     const num = whatsappNumber.replace(/[^0-9]/g, '');
-    const msg = `Hi Upanishad Mobile Store, I would like to reserve/order: ${product.name} (₹${product.price}). Please confirm takeaway availability!`;
+    const msg = `${contactWhatsAppMessage} ${product.name} (₹${product.price}). Please confirm takeaway availability!`;
     window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
   }
 
@@ -124,7 +124,7 @@ export default function AIChatWidget() {
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 rounded-full border border-white"></span>
               </div>
               <div>
-                <h3 className="font-sans text-body-sm font-bold tracking-wide">Upanishad AI Assistant</h3>
+                <h3 className="font-sans text-body-sm font-bold tracking-wide">{storeName} AI Assistant</h3>
                 <p className="text-[10px] text-white/80 font-medium">Instant RAG Product Finder</p>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 
 interface Props {
   onMenuToggle?: () => void;
@@ -7,6 +8,7 @@ interface Props {
 
 export default function AdminMobileHeader({ onMenuToggle }: Props) {
   const navigate = useNavigate();
+  const { storeName } = useApp();
 
   function handleSignOut() {
     api.adminLogout();
@@ -24,7 +26,7 @@ export default function AdminMobileHeader({ onMenuToggle }: Props) {
       </button>
 
       <Link to="/admin/dashboard" className="font-serif text-title-md font-bold text-ink-black tracking-tight">
-        Upanishad mobiles
+        {storeName}
       </Link>
 
       <div className="flex items-center gap-1">

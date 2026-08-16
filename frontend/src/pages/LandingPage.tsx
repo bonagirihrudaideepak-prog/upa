@@ -21,7 +21,7 @@ const FEATURED_CATEGORY_FALLBACKS: Record<string, { icon: string; color: string 
 };
 
 export default function LandingPage() {
-  const { showToast, whatsappNumber } = useApp();
+  const { showToast, whatsappNumber, homeCategoriesTitle, homeFeaturedTitle, homeNewArrivalsTitle, homeAllProductsTitle } = useApp();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(true);
   const [featured, setFeatured] = useState<Product[]>([]);
@@ -127,7 +127,7 @@ export default function LandingPage() {
         {/* Featured Categories */}
         <section className="max-w-container mx-auto px-gutter mb-10 mt-8">
           <h2 className="font-headline-md text-headline-md text-ink-black mb-5 butter-underline inline-block">
-            Shop by Category
+            {homeCategoriesTitle}
           </h2>
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 md:gap-6">
             {categories.map((cat) => {
@@ -161,7 +161,7 @@ export default function LandingPage() {
         {/* Top Recommended */}
         <section className="max-w-container mx-auto px-gutter mb-10">
           <h2 className="font-headline-md text-headline-md text-ink-black mb-5 butter-underline inline-block">
-            Top Recommended
+            {homeFeaturedTitle}
           </h2>
           <ProductGrid
             products={featured.slice(0, displayLimit)}
@@ -175,7 +175,7 @@ export default function LandingPage() {
         <section className="max-w-container mx-auto px-gutter mb-10">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-headline-md text-headline-md text-ink-black butter-underline inline-block">
-              New Arrivals
+              {homeNewArrivalsTitle}
             </h2>
             <Link
               to="/catalog?filter=new-arrivals"
@@ -223,7 +223,7 @@ export default function LandingPage() {
         <section className="max-w-container mx-auto px-gutter mb-10">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-headline-md text-headline-md text-ink-black butter-underline inline-block">
-              All Products
+              {homeAllProductsTitle}
             </h2>
             <Link
               to="/catalog"

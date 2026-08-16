@@ -1,6 +1,23 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'upanishad_secret_key_2026';
+function loadJwtSecret() {
+  const env = process.env.JWT_SECRET;
+  if (env) return env;
+
+  const isProd = (process.env.NODE_ENV || 'production') === 'production';
+  if (isProd) {
+    // Fail closed: never fall back to a hardcoded, publicly known secret.
+    throw new Error('JWT_SECRET is required in production. Set process.env.JWT_SECRET.');
+  }
+
+  // Non-production only: ephemeral random secret (tokens do not survive restarts).
+  const ephemeral = crypto.randomBytes(48).toString('hex');
+  console.warn('[SECURITY] JWT_SECRET not set; using an ephemeral random secret. Sessions will not persist across restarts.');
+  return ephemeral;
+}
+
+const JWT_SECRET = loadJwtSecret();
 
 function verifyAdmin(req, res, next) {
   const authHeader = req.headers.authorization;

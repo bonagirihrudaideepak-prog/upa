@@ -1,12 +1,33 @@
 param(
-    [string]$FtpHost = "ftpupload.net",
-    [string]$FtpUser = "if0_42539987",
-    [string]$FtpPass = "x3afQcwaOu3X3",
-    [string]$RemoteDir = "htdocs"
+    [string]$FtpHost = $env:FTP_HOST,
+    [string]$FtpUser = $env:FTP_USER,
+    [string]$FtpPass = $env:FTP_PASS,
+    [string]$RemoteDir = "public_html"
 )
 
+# NOTE: This script is a legacy FTP deploy helper. The production path is the
+# GitHub Actions pipeline (see .github/workflows/deploy.yml + devops/).
+# Credentials MUST come from environment variables (FTP_HOST/FTP_USER/FTP_PASS)
+# or a gitignored credentials file — never hardcode them here.
+
+if (-not $FtpHost -or -not $FtpUser -or -not $FtpPass) {
+    # Try a gitignored credentials file: devops/ftp-credentials.json {"host":"...","user":"...","pass":"..."}
+    $credFile = Join-Path $PSScriptRoot "devops/ftp-credentials.json"
+    if (Test-Path $credFile) {
+        $cfg = Get-Content $credFile -Raw | ConvertFrom-Json
+        $FtpHost = if (-not $FtpHost) { $cfg.host } else { $FtpHost }
+        $FtpUser = if (-not $FtpUser) { $cfg.user } else { $FtpUser }
+        $FtpPass = if (-not $FtpPass) { $cfg.pass } else { $FtpPass }
+    }
+}
+
+if (-not $FtpHost -or -not $FtpUser -or -not $FtpPass) {
+    Write-Error "Missing FTP credentials. Set FTP_HOST, FTP_USER, FTP_PASS env vars (or devops/ftp-credentials.json)."
+    exit 1
+}
+
 $localRoot = $PSScriptRoot
-$excludeDirs = @("node_modules", ".git")
+$excludeDirs = @("node_modules", ".git", "frontend", "devops")
 $fileCount = 0
 $errorCount = 0
 
@@ -75,14 +96,10 @@ function Upload-Directory($localDir, $remoteSubDir) {
     }
 }
 
-Write-Host "=== Deploying Upanishad Store to InfinityFree ==="
+Write-Host "=== Deploying Upanishad Store (legacy FTP helper) ==="
 Write-Host "Host: $FtpHost  Target: /$RemoteDir/"
-Write-Host ""
 
-# Ensure remote htdocs directory exists
 Ensure-Directory $RemoteDir
-
-# Upload everything
 Upload-Directory $localRoot ""
 
 Write-Host ""
@@ -90,8 +107,7 @@ Write-Host "=== Deployment Summary ==="
 Write-Host "Files uploaded: $fileCount"
 Write-Host "Errors: $errorCount"
 if ($errorCount -eq 0) {
-    Write-Host "SUCCESS: Store deployed to InfinityFree!" -ForegroundColor Green
-    Write-Host "Visit: https://upanishad-store.infinityfreeapp.com/" -ForegroundColor Cyan
+    Write-Host "SUCCESS: Store deployed!" -ForegroundColor Green
 } else {
     Write-Host "Some files failed. Check errors above and re-run." -ForegroundColor Yellow
 }

@@ -4,9 +4,11 @@ import SearchBar from '../Search/SearchBar';
 import MobileMenu from './MobileMenu';
 import ScrollingDeals from '../Social/ScrollingDeals';
 import { api } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 import type { Category } from '../../types';
 
 export default function Header() {
+  const { storeName } = useApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -63,7 +65,7 @@ export default function Header() {
           </button>
 
           <Link to="/" className="font-serif text-title-md text-ink-black tracking-tight font-bold">
-            Upanishad mobiles
+            {storeName}
           </Link>
 
           <div className="flex items-center gap-2">
@@ -89,7 +91,7 @@ export default function Header() {
         {/* Desktop Header Bar (Logo, SearchBar & Category Navigation) */}
         <div className="hidden md:flex items-center justify-between h-16 px-margin max-w-container mx-auto">
           <Link to="/" className="font-serif text-title-lg text-ink-black tracking-tight shrink-0 font-bold">
-            Upanishad mobiles
+            {storeName}
           </Link>
 
           <div className="flex-1 max-w-md mx-8">

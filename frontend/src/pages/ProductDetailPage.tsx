@@ -12,7 +12,7 @@ import type { Product, ProductVariant } from '../types';
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { contactPhone, whatsappNumber } = useApp();
+  const { contactPhone, whatsappNumber, storeName, pickupNotice } = useApp();
 
   function goBack() {
     if (window.history.length > 1) {
@@ -93,7 +93,7 @@ export default function ProductDetailPage() {
       ? ` (${variant.color}, ${variant.model})`
       : '';
     const num = whatsappNumber.replace(/[^0-9]/g, '');
-    const message = `Hi, I'm interested in buying ${product.name}${variantLabel} - ₹${product.price}. Please confirm pickup availability.`;
+    const message = `Hi ${storeName}, I'm interested in buying ${product.name}${variantLabel} - ₹${product.price}. Please confirm pickup availability.`;
     window.open(`https://wa.me/${num}?text=${encodeURIComponent(message)}`, '_blank');
     setTimeout(() => setAddingToCart(false), 1000);
   }
@@ -409,7 +409,7 @@ export default function ProductDetailPage() {
               <div className="flex items-start gap-3 p-4 bg-butter-highlight/30 border border-butter-highlight rounded">
                 <span className="material-symbols-outlined text-lg text-smoke shrink-0 mt-0.5">info</span>
                 <p className="font-body-md text-body-md text-smoke">
-                  Store only accepts pickups. Message us on WhatsApp or call to inquire about availability.
+                  {pickupNotice}
                 </p>
               </div>
 

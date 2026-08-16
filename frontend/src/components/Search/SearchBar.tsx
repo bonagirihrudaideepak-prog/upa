@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, getImageUrl } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 import type { Product } from '../../types';
 
 interface SearchBarProps {
@@ -11,11 +12,12 @@ interface SearchBarProps {
 }
 
 export default function SearchBar({
-  placeholder = 'Search Upanishad Mobiles...',
+  placeholder,
   fullWidth = false,
   className = '',
   onSearch,
 }: SearchBarProps) {
+  const { searchPlaceholder } = useApp();
   const [query, setQuery] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [suggestions, setSuggestions] = useState<Product[]>([]);
@@ -140,7 +142,7 @@ export default function SearchBar({
             setTimeout(() => setIsFocused(false), 200);
           }}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder}
+          placeholder={placeholder || searchPlaceholder}
           className="flex-1 bg-transparent border-none outline-none font-sans text-body-sm text-charcoal placeholder:text-charcoal/50 min-w-0"
           aria-label="Search products"
         />

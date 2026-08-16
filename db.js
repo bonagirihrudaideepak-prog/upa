@@ -302,7 +302,18 @@ async function initDb() {
     // Ensure individual settings exist even if the table was seeded before this key was added
     try {
       const missingSettings = [
-        { setting_key: 'seo_keywords', setting_value: 'mobile shop Visakhapatnam, smartphone store online, phone covers, tempered glass, iPhone cases, Samsung accessories, new arrival mobiles, best phone deals Andhra Pradesh' }
+        { setting_key: 'seo_keywords', setting_value: 'mobile shop Visakhapatnam, smartphone store online, phone covers, tempered glass, iPhone cases, Samsung accessories, new arrival mobiles, best phone deals Andhra Pradesh' },
+        { setting_key: 'footer_tagline', setting_value: 'Store Pickup Only • Premium Cases & Accessories' },
+        { setting_key: 'pickup_notice', setting_value: 'Store only accepts pickups. Message us on WhatsApp or call to inquire about availability.' },
+        { setting_key: 'pickup_label', setting_value: 'Store Pickup Only' },
+        { setting_key: 'search_placeholder', setting_value: 'Search Upanishad Mobiles...' },
+        { setting_key: 'chat_greeting', setting_value: '👋 Hi! I\'m your AI Shopping Assistant. Ask me about products, prices, colors, or availability!' },
+        { setting_key: 'contact_whatsapp_message', setting_value: 'Hi Upanishad Mobile Store, I would like to reserve/order:' },
+        { setting_key: 'home_categories_title', setting_value: 'Shop by Category' },
+        { setting_key: 'home_featured_title', setting_value: 'Top Recommended' },
+        { setting_key: 'home_new_arrivals_title', setting_value: 'New Arrivals' },
+        { setting_key: 'home_all_products_title', setting_value: 'All Products' },
+        { setting_key: 'footer_copyright', setting_value: 'All rights reserved.' }
       ];
       for (const s of missingSettings) {
         const existing = await db('site_settings').where('setting_key', s.setting_key).first();

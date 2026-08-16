@@ -1,0 +1,133 @@
+name: Deploy (Production)
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+      rollback_to:
+        description: 'Release label to roll back to (e.g. 2026-08-16T11-00-00Z). Leave empty to deploy latest.'
+        required: false
+        default: ''
+        type: string
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Hostinger (${{ github.event.inputs.environment || 'production' }})
+    runs-on: ubuntu-latest
+    environment: production   # requires human approval to run
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate runtime credentials file (gitignored, not committed)
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+          ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          {
+            echo "<?php"
+            echo "return ["
+            echo "    'host' => getenv('DB_HOST') ?: '$DB_HOST',"
+            echo "    'port' => getenv('DB_PORT') ?: '$DB_PORT',"
+            echo "    'name' => getenv('DB_NAME') ?: '$DB_NAME',"
+            echo "    'user' => getenv('DB_USER') ?: '$DB_USER',"
+            echo "    'password' => getenv('DB_PASS') ?: '$DB_PASS',"
+            echo "    'admin' => ["
+            echo "        'username' => getenv('ADMIN_USERNAME') ?: '$ADMIN_USERNAME',"
+            echo "        'password' => getenv('ADMIN_PASSWORD') ?: '$ADMIN_PASSWORD',"
+            echo "    ],"
+            echo "];"
+          } > hostinger_php/config/credentials.php
+          echo "Generated credentials.php ($(wc -c < hostinger_php/config/credentials.php) bytes)"
+
+      - name: Build frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+
+      - name: Package deploy artifact
+        run: |
+          set -e
+          rm -rf deploy_pkg && mkdir -p deploy_pkg
+          # PHP backend + compiled frontend form a single deployable unit
+          cp -r hostinger_php/index.php deploy_pkg/
+          cp -r hostinger_php/config deploy_pkg/
+          cp -r hostinger_php/db.sql deploy_pkg/
+          cp -r hostinger_php/.htaccess deploy_pkg/
+          # compiled React build
+          cp -r frontend/dist/index.html deploy_pkg/
+          cp -r frontend/dist/assets deploy_pkg/
+          find deploy_pkg -type f | sort
+
+      - name: Pre-flight — DB reachability
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASS: ${{ secrets.DB_PASS }}
+        run: |
+          set -e
+          command -v mysql || { echo "mysql client not available; skipping"; exit 0; }
+          mysql --connect-timeout=10 -h "$DB_HOST" -u "$DB_USER" -p"$DB_PASS" \
+            -e "SELECT COUNT(*) AS ok FROM information_schema.tables WHERE table_schema='${DB_NAME}';"
+
+      - name: Run atomic deploy (SFTP)
+        env:
+          SFTP_HOST: ${{ secrets.HOSTINGER_SFTP_HOST }}
+          SFTP_USER: ${{ secrets.HOSTINGER_SFTP_USER }}
+          SFTP_PASS: ${{ secrets.HOSTINGER_SFTP_PASS }}
+          REMOTE_DIR: ${{ secrets.HOSTINGER_REMOTE_DIR }}
+          ROLLBACK_TO: ${{ github.event.inputs.rollback_to || '' }}
+        run: |
+          chmod +x devops/deploy-atomic.sh
+          bash devops/deploy-atomic.sh
+
+      - name: Verify health
+        run: |
+          set -e
+          for i in 1 2 3 4 5; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' https://upanishadmobiles.com/api/health || echo 000)
+            echo "health check attempt $i -> $code"
+            if [ "$code" = "200" ]; then echo "HEALTH OK"; exit 0; fi
+            sleep 10
+          done
+          echo "Health check failed after retries"
+          exit 1
+
+      - name: Purge Cloudflare cache (optional)
+        if: env.CF_ZONE_ID != ''
+        env:
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"purge_everything":true}'

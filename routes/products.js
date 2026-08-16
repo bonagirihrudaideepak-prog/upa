@@ -2,9 +2,24 @@ const express = require('express');
 const router = express.Router();
 const { db, formatProduct, attachImagesAndVariants } = require('../db');
 const { verifyAdmin } = require('../middleware/auth');
+const { isValidRasterImage } = require('../middleware/imageValidation');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+
+// Drop any uploaded files that are not real raster images (magic-byte check).
+function filterValidUploads(files) {
+  if (!files) return [];
+  const valid = [];
+  for (const f of files) {
+    if (isValidRasterImage(f.path)) {
+      valid.push(f);
+    } else {
+      try { fs.unlinkSync(f.path); } catch (e) { /* ignore */ }
+    }
+  }
+  return valid;
+}
 
 // Simple in-memory rate limiter for likes (per IP + product)
 const likeRateMap = new Map();
@@ -402,8 +417,9 @@ router.post('/admin/products', verifyAdmin, upload.array('images[]'), async (req
 
     // Handle Uploaded Files or Image URLs
     const imageInserts = [];
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file, i) => {
+    const validFiles = filterValidUploads(req.files);
+    if (validFiles.length > 0) {
+      validFiles.forEach((file, i) => {
         imageInserts.push({
           product_id: productId,
           image_path: 'uploads/' + file.filename,
@@ -498,8 +514,9 @@ async function updateProductHandler(req, res) {
 
     // Update images if files uploaded or passed
     const imageInserts = [];
-    if (req.files && req.files.length > 0) {
-      req.files.forEach((file, i) => {
+    const validFiles = filterValidUploads(req.files);
+    if (validFiles.length > 0) {
+      validFiles.forEach((file, i) => {
         imageInserts.push({
           product_id: id,
           image_path: 'uploads/' + file.filename,

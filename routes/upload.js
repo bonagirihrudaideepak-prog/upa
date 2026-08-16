@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { verifyAdmin } = require('../middleware/auth');
+const { isValidRasterImage, ALLOWED_UPLOAD_EXTS } = require('../middleware/imageValidation');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -24,9 +25,8 @@ const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     const ext = path.extname(file.originalname).toLowerCase();
-    if (allowed.includes(ext)) {
+    if (ALLOWED_UPLOAD_EXTS.has(ext)) {
       cb(null, true);
     } else {
       cb(new Error(`File type '${ext}' is not allowed`));
@@ -38,6 +38,11 @@ function handleUpload(req, res) {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
+  // Verify actual image content (magic bytes) — reject SVG/HTML polyglots.
+  if (!isValidRasterImage(req.file.path)) {
+    fs.unlinkSync(req.file.path); // remove the rejected file
+    return res.status(400).json({ error: 'Invalid image content: only JPG, PNG, WEBP, GIF images are allowed' });
+  }
   const relPath = 'uploads/' + req.file.filename;
   res.json({ path: relPath, url: relPath });
 }
@@ -48,13 +53,15 @@ function handleDelete(req, res) {
     return res.status(400).json({ error: 'File path is required' });
   }
 
-  // Strict path traversal protection: ensure path stays within uploads/
-  const cleanPath = path.normalize(fileRelPath).replace(/^(\.\.\/|\.\.\\)+/g, '');
-  const uploadsDir = path.join(__dirname, '..', 'uploads');
-  const fullPath = path.resolve(path.join(__dirname, '..', cleanPath));
+  // Path traversal protection: resolve the full path, then verify it is
+  // strictly inside the uploads directory (no prefix-collision bypass).
+  const uploadsDir = path.resolve(path.join(__dirname, '..', 'uploads'));
+  const fullPath = path.resolve(path.join(__dirname, '..', fileRelPath));
 
-  // SECURITY: Verify resolved path is inside uploads directory
-  if (!fullPath.startsWith(uploadsDir)) {
+  const relative = path.relative(uploadsDir, fullPath);
+  const isInside = relative !== '' && !relative.startsWith('..') && !path.isAbsolute(relative);
+
+  if (!isInside) {
     return res.status(403).json({ error: 'Access denied: path outside uploads directory' });
   }
 

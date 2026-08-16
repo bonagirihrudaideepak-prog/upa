@@ -5,18 +5,40 @@
  * All responses match the exact JSON shapes the React frontend expects.
  */
 
-ini_set('display_errors', '1');
+$appEnv = strtolower((string)(getenv('APP_ENV') ?: ($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'production')));
+
+// Production: suppress error display (logged server-side only). Development: verbose.
+if ($appEnv === 'development' || $appEnv === 'dev' || $appEnv === 'local') {
+    ini_set('display_errors', '1');
+} else {
+    ini_set('display_errors', '0');
+    ini_set('log_errors', '1');
+}
 error_reporting(E_ALL);
 
 // ========================================================
 // CORS + Security Headers
 // ========================================================
 header('Content-Type: application/json; charset=utf-8');
-header('Access-Control-Allow-Origin: *');
+
+// Restrict CORS to explicit allowed origins only (never reflect arbitrary origins).
+function get_allowed_origins(): array {
+    $cfg = getenv('ALLOWED_ORIGINS') ?: ($_ENV['ALLOWED_ORIGINS'] ?? $_SERVER['ALLOWED_ORIGINS'] ?? 'https://upanishadmobiles.com,http://localhost:5173,http://localhost:10000');
+    return array_values(array_filter(array_map('trim', explode(',', $cfg))));
+}
+$requestOrigin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($requestOrigin !== '' && in_array($requestOrigin, get_allowed_origins(), true)) {
+    header('Access-Control-Allow-Origin: ' . $requestOrigin);
+    header('Vary: Origin');
+}
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With');
+header('Access-Control-Allow-Credentials: false');
 header('X-Content-Type-Options: nosniff');
 header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+header("Content-Security-Policy: default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; script-src 'self'; connect-src 'self'");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -128,6 +150,42 @@ function slugify(string $text): string {
     $text = preg_replace('/\s+/', '-', $text);
     $text = preg_replace('/-+/', '-', $text);
     return trim($text, '-');
+}
+
+// Lightweight file-based sliding-window rate limiter (works on shared hosting).
+// Returns true if the request is allowed, false if over the limit.
+function rate_limit(string $bucket, int $max, int $windowSec, string $scope = ''): bool {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $key = $bucket . ':' . ($scope !== '' ? $scope : $ip);
+    $dir = sys_get_temp_dir() . '/upa_ratelimit';
+    if (!is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+    // Filename is a pure hash (no ':' — invalid on Windows NTFS alternate data streams).
+    $file = $dir . '/' . md5($key) . '.txt';
+    $now = time();
+
+    $entries = [];
+    if (is_file($file)) {
+        $raw = @file_get_contents($file);
+        $parts = $raw !== false ? explode(',', $raw) : [];
+        foreach ($parts as $t) {
+            if ($t !== '' && ($now - (int)$t) < $windowSec) {
+                $entries[] = (int)$t;
+            }
+        }
+    }
+    $entries[] = $now;
+    @file_put_contents($file, implode(',', $entries));
+
+    return count($entries) <= $max;
+}
+
+function rate_limit_reset(string $bucket, string $scope = ''): void {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+    $key = $bucket . ':' . ($scope !== '' ? $scope : $ip);
+    $file = sys_get_temp_dir() . '/upa_ratelimit/' . md5($key) . '.txt';
+    if (is_file($file)) @unlink($file);
 }
 
 // ========================================================
@@ -430,6 +488,9 @@ function save_uploaded_images(string $fieldName): array {
         $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
         if (!in_array($ext, $allowed)) continue;
 
+        // Validate actual image content (magic bytes / header) — rejects SVG/HTML polyglots.
+        if (!is_valid_image_upload($tmp, $ext)) continue;
+
         $uploadDir = __DIR__ . '/uploads';
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0777, true);
@@ -441,6 +502,28 @@ function save_uploaded_images(string $fieldName): array {
         }
     }
     return $saved;
+}
+
+// Verify an uploaded file is a real raster image matching its extension (getimagesize magic-byte check).
+function is_valid_image_upload(string $tmp, string $ext): bool {
+    if (!is_file($tmp)) return false;
+    $info = @getimagesize($tmp);
+    if ($info === false) return false;
+
+    $mimeType = $info['mime'] ?? '';
+    switch ($ext) {
+        case 'jpg':
+        case 'jpeg':
+            return $mimeType === 'image/jpeg';
+        case 'png':
+            return $mimeType === 'image/png';
+        case 'gif':
+            return $mimeType === 'image/gif';
+        case 'webp':
+            return $mimeType === 'image/webp';
+        default:
+            return false;
+    }
 }
 
 // Collect image URLs from `image_urls[]` multipart or JSON body
@@ -478,12 +561,26 @@ if ($uri === '/api/settings' && $method === 'GET') {
 if ($uri === '/api/admin/settings' && $method === 'POST') {
     requireAdmin();
     $input = get_json_input();
+
+    // Whitelist: only known setting keys may be written (rejects arbitrary key injection).
+    $allowedSettings = [
+        'store_name', 'marquee_text', 'contact_phone', 'whatsapp_number',
+        'instagram_url', 'facebook_url', 'youtube_url', 'store_address',
+        'contact_email', 'about_content', 'location_map_url', 'hero_title',
+        'hero_subtitle', 'seo_keywords', 'footer_tagline', 'footer_copyright',
+        'pickup_notice', 'pickup_label', 'search_placeholder', 'chat_greeting',
+        'contact_whatsapp_message', 'home_categories_title', 'home_featured_title',
+        'home_new_arrivals_title', 'home_all_products_title',
+    ];
     foreach ($input as $key => $val) {
+        if (!in_array($key, $allowedSettings, true)) continue;
+        if (!is_string($val)) $val = (string)$val;
+        if (strlen($val) > 5000) continue;
         $stmt = $pdo->prepare(
             "INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)
              ON DUPLICATE KEY UPDATE setting_value = ?, updated_at = CURRENT_TIMESTAMP"
         );
-        $stmt->execute([$key, (string)$val, (string)$val]);
+        $stmt->execute([$key, $val, $val]);
     }
     $rows = $pdo->query("SELECT setting_key, setting_value FROM site_settings")->fetchAll();
     $settings = [];
@@ -725,6 +822,12 @@ if (preg_match('#^/api/products/(\d+)$#i', $uri, $m) && $method === 'GET') {
 // POST /api/products/{id}/like
 if (preg_match('#^/api/products/(\d+)/like$#i', $uri, $m) && $method === 'POST') {
     $id = (int)$m[1];
+
+    // Rate limit: max 12 likes per minute per IP per product.
+    if (!rate_limit('product_like', 12, 60, 'product_' . $id)) {
+        json_response(['error' => 'Too many requests. Please wait a moment.'], 429);
+    }
+
     $pdo->prepare("UPDATE products SET likes_count = likes_count + 1 WHERE id = ?")->execute([$id]);
 
     $stmt = $pdo->prepare("SELECT likes_count FROM products WHERE id = ?");
@@ -740,6 +843,11 @@ if ($uri === '/api/reviews' && $method === 'POST') {
     $userName = trim($input['user_name'] ?? '');
     $rating = (int)($input['rating'] ?? 0);
     $comment = trim($input['comment'] ?? '');
+
+    // Rate limit: max 5 reviews per minute per IP.
+    if (!rate_limit('review_create', 5, 60)) {
+        json_response(['error' => 'Too many reviews. Please try again later.'], 429);
+    }
 
     if (!$productId || $userName === '' || $rating < 1 || $rating > 5) {
         json_response(['error' => 'product_id, user_name, and rating (1-5) are required'], 400);
@@ -846,6 +954,11 @@ if ($uri === '/api/admin/login' && $method === 'POST') {
     $username = trim($input['username'] ?? '');
     $password = (string)($input['password'] ?? '');
 
+    // Brute-force protection: max 10 attempts per IP per 5 minutes.
+    if (!rate_limit('admin_login', 10, 300)) {
+        json_response(['error' => 'Too many login attempts. Please try again later.'], 429);
+    }
+
     if ($username === '' || $password === '') {
         json_response(['error' => 'Username and password are required'], 400);
     }
@@ -859,6 +972,9 @@ if ($uri === '/api/admin/login' && $method === 'POST') {
     if (!$validPass) {
         json_response(['error' => 'Invalid credentials'], 401);
     }
+
+    // Successful login clears the failure counter for this IP.
+    rate_limit_reset('admin_login');
 
     $payload = ['id' => (int)$admin['id'], 'username' => $admin['username']];
     $token = jwtSign($payload);
@@ -888,8 +1004,13 @@ if ($uri === '/api/admin/change-password' && $method === 'POST') {
     $admin = requireAdmin();
     $input = get_json_input();
     $newPassword = (string)($input['new_password'] ?? '');
-    if (strlen($newPassword) < 6) {
-        json_response(['error' => 'New password must be at least 6 characters long'], 400);
+
+    if (strlen($newPassword) < 12) {
+        json_response(['error' => 'New password must be at least 12 characters long'], 400);
+    }
+    if (!preg_match('/[A-Z]/', $newPassword) || !preg_match('/[a-z]/', $newPassword) ||
+        !preg_match('/[0-9]/', $newPassword) || !preg_match('/[^A-Za-z0-9]/', $newPassword)) {
+        json_response(['error' => 'New password must include uppercase, lowercase, a number, and a special character'], 400);
     }
     $newHash = password_hash($newPassword, PASSWORD_BCRYPT);
     $pdo->prepare("UPDATE admin_users SET password_hash = ? WHERE id = ?")->execute([$newHash, (int)$admin['id']]);
@@ -1436,6 +1557,11 @@ if (($uri === '/api/upload' || $uri === '/api/admin/upload') && $method === 'POS
         json_response(['error' => "File type '$ext' is not allowed"], 400);
     }
 
+    // Validate actual image content (magic bytes / header) — rejects SVG/HTML polyglots.
+    if (!is_valid_image_upload($_FILES['file']['tmp_name'], $ext)) {
+        json_response(['error' => 'Invalid image content: only JPG, PNG, WEBP, GIF images are allowed'], 400);
+    }
+
     $uploadDir = __DIR__ . '/uploads';
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
@@ -1478,94 +1604,6 @@ if (($uri === '/api/upload' || $uri === '/api/admin/upload') && $method === 'DEL
 // ========================================================
 // ADMIN AUTHENTICATION & DASHBOARD
 // ========================================================
-
-// POST /api/admin/login
-if ($uri === '/api/admin/login' && $method === 'POST') {
-    $input = get_json_input();
-    $username = trim($input['username'] ?? '');
-    $password = trim($input['password'] ?? '');
-
-    if ($username === '' || $password === '') {
-        json_response(['error' => 'Username and password are required'], 400);
-    }
-
-    $stmt = $pdo->prepare("SELECT * FROM admin_users WHERE username = ?");
-    $stmt->execute([$username]);
-    $admin = $stmt->fetch();
-
-    if (!$admin) {
-        json_response(['error' => 'Invalid credentials'], 401);
-    }
-
-    $validPass = password_verify($password, $admin['password_hash']);
-    if (!$validPass && ($password === 'admin123' || $admin['password_hash'] === 'admin123')) {
-        $validPass = true;
-    }
-
-    if (!$validPass) {
-        json_response(['error' => 'Invalid credentials'], 401);
-    }
-
-    $payload = ['id' => (int)$admin['id'], 'username' => $admin['username']];
-    $token = jwtSign($payload);
-
-    json_response([
-        'message' => 'Login successful',
-        'token'   => $token,
-        'admin'   => $payload,
-        'user'    => $payload
-    ]);
-}
-
-// POST /api/admin/logout
-if ($uri === '/api/admin/logout' && $method === 'POST') {
-    json_response(['message' => 'Logged out successfully']);
-}
-
-// GET /api/admin/me
-if ($uri === '/api/admin/me' && $method === 'GET') {
-    $admin = requireAdmin();
-    json_response(['admin' => $admin, 'user' => $admin]);
-}
-
-// GET /api/admin/dashboard
-if ($uri === '/api/admin/dashboard' && $method === 'GET') {
-    requireAdmin();
-
-    $totalProducts   = (int)$pdo->query("SELECT COUNT(*) FROM products")->fetchColumn();
-    $totalCategories = (int)$pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
-    $totalReviews    = (int)$pdo->query("SELECT COUNT(*) FROM reviews")->fetchColumn();
-    $activeOffers    = (int)$pdo->query("SELECT COUNT(*) FROM offers WHERE is_active = 1")->fetchColumn();
-    $outOfStock      = (int)$pdo->query("SELECT COUNT(*) FROM products WHERE is_out_of_stock = 1")->fetchColumn();
-    $totalLikes      = (int)$pdo->query("SELECT COALESCE(SUM(likes_count), 0) FROM products")->fetchColumn();
-    $totalInventory  = (int)$pdo->query("SELECT COALESCE(SUM(stock), 0) FROM products")->fetchColumn();
-
-    $recentStmt = $pdo->query("SELECT id, name, price, stock, category, is_out_of_stock, created_at FROM products ORDER BY created_at DESC LIMIT 5");
-    $recentProducts = array_map(function($p) use ($pdo) {
-        return format_product($p, $pdo);
-    }, $recentStmt->fetchAll());
-
-    $topStmt = $pdo->query("SELECT id, name, likes_count FROM products ORDER BY likes_count DESC LIMIT 5");
-    $topLiked = array_map(function($p) {
-        return [
-            'id' => (int)$p['id'],
-            'name' => $p['name'],
-            'likes_count' => (int)($p['likes_count'] ?? 0)
-        ];
-    }, $topStmt->fetchAll());
-
-    json_response([
-        'total_products'   => $totalProducts,
-        'total_categories' => $totalCategories,
-        'total_reviews'    => $totalReviews,
-        'active_offers'    => $activeOffers,
-        'out_of_stock'     => $outOfStock,
-        'total_likes'      => $totalLikes,
-        'total_inventory'  => $totalInventory,
-        'recent_products'  => $recentProducts,
-        'top_liked'        => $topLiked,
-    ]);
-}
 
 // ========================================================
 // 404

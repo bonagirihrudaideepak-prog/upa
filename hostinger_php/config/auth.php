@@ -1,7 +1,27 @@
 <?php
 
 function getJwtSecret(): string {
-    return getenv('JWT_SECRET') ?: ($_ENV['JWT_SECRET'] ?? $_SERVER['JWT_SECRET'] ?? 'upanishad_secret_key_2026');
+    static $secret = null;
+    if ($secret !== null) return $secret;
+
+    $env = getenv('JWT_SECRET') ?: ($_ENV['JWT_SECRET'] ?? $_SERVER['JWT_SECRET'] ?? '');
+    if ($env !== '') {
+        $secret = $env;
+        return $secret;
+    }
+
+    // Fail closed in production: never fall back to a hardcoded, publicly known secret.
+    $appEnv = strtolower((string)(getenv('APP_ENV') ?: ($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'production')));
+    if ($appEnv === 'production' || $appEnv === 'prod') {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode(['error' => 'Server configuration error: JWT_SECRET is not set']);
+        exit;
+    }
+
+    // Non-production only: ephemeral random secret (tokens do not survive restarts).
+    $secret = bin2hex(random_bytes(32));
+    return $secret;
 }
 
 function base64UrlEncode(string $data): string {
@@ -56,7 +76,6 @@ function getBearerToken(): ?string {
         return $m[1];
     }
     if ($auth !== '') return $auth;
-    if (!empty($_GET['admin_token'])) return trim($_GET['admin_token']);
     return null;
 }
 

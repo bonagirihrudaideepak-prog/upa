@@ -24,3 +24,9 @@ Thumbs.db
 php_staging/
 HOSTINGER_TEMP_SITE_CREDENTIALS.md
 
+# Runtime secrets (never commit)
+hostinger_php/config/credentials.php
+hostinger_php/shared/config/env.php
+hostinger_php/uploads/
+devops/deploy_pkg/
+

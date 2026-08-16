@@ -25,13 +25,25 @@ router.get('/settings', async (req, res) => {
 });
 
 // Admin: Update Site Settings
+const ALLOWED_SETTINGS_KEYS = new Set([
+  'store_name', 'marquee_text', 'contact_phone', 'whatsapp_number',
+  'instagram_url', 'facebook_url', 'youtube_url', 'store_address',
+  'contact_email', 'about_content', 'location_map_url', 'hero_title',
+  'hero_subtitle', 'seo_keywords', 'footer_tagline', 'footer_copyright',
+  'pickup_notice', 'pickup_label', 'search_placeholder', 'chat_greeting',
+  'contact_whatsapp_message', 'home_categories_title', 'home_featured_title',
+  'home_new_arrivals_title', 'home_all_products_title',
+]);
+
 router.post('/admin/settings', verifyAdmin, async (req, res) => {
   try {
     const settingsObj = req.body || {};
     const keys = Object.keys(settingsObj);
-    
+
     for (const key of keys) {
-      const val = String(settingsObj[key]);
+      // Whitelist only known keys; reject arbitrary key injection.
+      if (!ALLOWED_SETTINGS_KEYS.has(key)) continue;
+      const val = String(settingsObj[key]).substring(0, 5000);
       const exists = await db('site_settings').where('setting_key', key).first();
       if (exists) {
         await db('site_settings').where('setting_key', key).update({ setting_value: val, updated_at: db.fn.now() });
@@ -56,8 +68,35 @@ router.post('/admin/settings', verifyAdmin, async (req, res) => {
 });
 
 // Admin Login
+const loginAttempts = new Map(); // ip -> { count, firstTs }
+const LOGIN_MAX_ATTEMPTS = 10;
+const LOGIN_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+function enforceLoginRateLimit(req, res) {
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || (now - entry.firstTs) > LOGIN_WINDOW_MS) {
+    loginAttempts.set(ip, { count: 1, firstTs: now });
+    return;
+  }
+  entry.count += 1;
+  if (entry.count > LOGIN_MAX_ATTEMPTS) {
+    return res.status(429).json({ error: 'Too many login attempts. Please try again later.' });
+  }
+  loginAttempts.set(ip, entry);
+}
+
+function clearLoginRateLimit(req) {
+  const ip = req.ip || req.connection.remoteAddress || 'unknown';
+  loginAttempts.delete(ip);
+}
+
 router.post('/admin/login', async (req, res) => {
   try {
+    enforceLoginRateLimit(req, res);
+    if (res.headersSent) return;
+
     const { username, password } = req.body || {};
     if (!username || !password) {
       return res.status(400).json({ error: 'Username and password are required' });
@@ -67,6 +106,9 @@ router.post('/admin/login', async (req, res) => {
     if (!admin || !bcrypt.compareSync(password, admin.password_hash)) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
+
+    // Successful login clears the failure counter for this IP.
+    clearLoginRateLimit(req);
 
     const payload = { id: Number(admin.id), username: admin.username };
     const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });

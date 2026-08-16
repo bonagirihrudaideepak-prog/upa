@@ -11,7 +11,7 @@ interface ProductDetailModalProps {
 }
 
 export default function ProductDetailModal({ product, isOpen, onClose }: ProductDetailModalProps) {
-  const { whatsappNumber, instagramUrl: ctxInstagramUrl } = useApp();
+  const { whatsappNumber, instagramUrl: ctxInstagramUrl, storeName, pickupLabel, contactWhatsAppMessage, contactPhone } = useApp();
   const [selectedColor, setSelectedColor] = useState('');
   const [selectedModel, setSelectedModel] = useState('');
   const [likesCount, setLikesCount] = useState(0);
@@ -121,10 +121,10 @@ export default function ProductDetailModal({ product, isOpen, onClose }: Product
   }
 
   const colorName = allColors.find((c) => c.code === selectedColor)?.color ?? '';
-  const orderMessage = `Hi Upanishad Mobile Store, I would like to reserve/order:
+  const orderMessage = `${contactWhatsAppMessage}
 - Product: ${p.name}
 - Price: ₹${p.price}
-${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${colorName}\n` : ''}- Order Type: Store Pickup`;
+${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${colorName}\n` : ''}- Order Type: ${pickupLabel}`;
 
   const num = whatsappNumber.replace(/[^0-9]/g, '');
   const whatsappUrl = `https://wa.me/${num}?text=${encodeURIComponent(orderMessage)}`;
@@ -305,7 +305,7 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
             <div className="flex items-start gap-2.5">
               <span className="material-symbols-outlined text-[#856404] text-xl">store</span>
               <div>
-                <p className="font-sans text-body-sm font-semibold text-[#856404]">Store Pickup Only</p>
+                <p className="font-sans text-body-sm font-semibold text-[#856404]">{pickupLabel}</p>
                 <p className="font-sans text-caption text-[#856404] mt-0.5">
                   Connect directly via WhatsApp or Call to confirm product availability and details!
                 </p>
@@ -323,7 +323,7 @@ ${selectedModel ? `- Model: ${selectedModel}\n` : ''}${colorName ? `- Color: ${c
                 Order on WhatsApp
               </a>
               <a
-                href="tel:+919666731286"
+                href={`tel:${(contactPhone || '+919666731286').replace(/[^0-9+]/g, '')}`}
                 className="flex-1 inline-flex items-center justify-center gap-2 bg-[#007AFF] text-white font-sans text-label-sm uppercase tracking-wider px-4 py-3 rounded hover:bg-[#0056b3] transition-colors shadow-sm"
               >
                 <span className="material-symbols-outlined text-lg">call</span>

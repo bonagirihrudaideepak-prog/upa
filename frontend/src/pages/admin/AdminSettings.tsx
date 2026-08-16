@@ -29,6 +29,17 @@ export default function AdminSettings() {
   const [heroSubtitle, setHeroSubtitle] = useState('');
   const [seoKeywords, setSeoKeywords] = useState('');
   const [customPhoneModels, setCustomPhoneModels] = useState('');
+  const [footerTagline, setFooterTagline] = useState('');
+  const [pickupNotice, setPickupNotice] = useState('');
+  const [pickupLabel, setPickupLabel] = useState('');
+  const [searchPlaceholder, setSearchPlaceholder] = useState('');
+  const [chatGreeting, setChatGreeting] = useState('');
+  const [contactWhatsAppMessage, setContactWhatsAppMessage] = useState('');
+  const [homeCategoriesTitle, setHomeCategoriesTitle] = useState('');
+  const [homeFeaturedTitle, setHomeFeaturedTitle] = useState('');
+  const [homeNewArrivalsTitle, setHomeNewArrivalsTitle] = useState('');
+  const [homeAllProductsTitle, setHomeAllProductsTitle] = useState('');
+  const [footerCopyright, setFooterCopyright] = useState('');
 
   const [newPassword, setNewPassword] = useState('');
   const [updatingPassword, setUpdatingPassword] = useState(false);
@@ -60,6 +71,17 @@ export default function AdminSettings() {
       setHeroSubtitle(s.hero_subtitle || '');
       setSeoKeywords(s.seo_keywords || '');
       setCustomPhoneModels(s.custom_phone_models || '');
+      setFooterTagline(s.footer_tagline || '');
+      setPickupNotice(s.pickup_notice || '');
+      setPickupLabel(s.pickup_label || '');
+      setSearchPlaceholder(s.search_placeholder || '');
+      setChatGreeting(s.chat_greeting || '');
+      setContactWhatsAppMessage(s.contact_whatsapp_message || '');
+      setHomeCategoriesTitle(s.home_categories_title || '');
+      setHomeFeaturedTitle(s.home_featured_title || '');
+      setHomeNewArrivalsTitle(s.home_new_arrivals_title || '');
+      setHomeAllProductsTitle(s.home_all_products_title || '');
+      setFooterCopyright(s.footer_copyright || '');
     } else {
       setError(res.error || 'Failed to load site settings');
     }
@@ -88,6 +110,17 @@ export default function AdminSettings() {
       hero_subtitle: heroSubtitle.trim(),
       seo_keywords: seoKeywords.trim(),
       custom_phone_models: customPhoneModels.trim(),
+      footer_tagline: footerTagline.trim(),
+      pickup_notice: pickupNotice.trim(),
+      pickup_label: pickupLabel.trim(),
+      search_placeholder: searchPlaceholder.trim(),
+      chat_greeting: chatGreeting.trim(),
+      contact_whatsapp_message: contactWhatsAppMessage.trim(),
+      home_categories_title: homeCategoriesTitle.trim(),
+      home_featured_title: homeFeaturedTitle.trim(),
+      home_new_arrivals_title: homeNewArrivalsTitle.trim(),
+      home_all_products_title: homeAllProductsTitle.trim(),
+      footer_copyright: footerCopyright.trim(),
     };
 
     const res = await api.updateSettings(payload);
@@ -377,10 +410,161 @@ export default function AdminSettings() {
               </div>
             </div>
 
+            {/* Store Content & Messaging */}
+            <div className="bg-white border border-ash rounded p-5 space-y-5">
+              <h2 className="font-serif text-title-md text-ink-black">Store Content &amp; Messaging</h2>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Footer Tagline
+                </label>
+                <input
+                  type="text"
+                  value={footerTagline}
+                  onChange={(e) => setFooterTagline(e.target.value)}
+                  placeholder="Store Pickup Only • Premium Cases & Accessories"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Store Pickup Label
+                </label>
+                <input
+                  type="text"
+                  value={pickupLabel}
+                  onChange={(e) => setPickupLabel(e.target.value)}
+                  placeholder="Store Pickup Only"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Pickup Notice (shown on product pages)
+                </label>
+                <textarea
+                  value={pickupNotice}
+                  onChange={(e) => setPickupNotice(e.target.value)}
+                  rows={2}
+                  placeholder="Store only accepts pickups. Message us on WhatsApp or call to inquire about availability."
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Search Bar Placeholder Text
+                </label>
+                <input
+                  type="text"
+                  value={searchPlaceholder}
+                  onChange={(e) => setSearchPlaceholder(e.target.value)}
+                  placeholder="Search Upanishad Mobiles..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  AI Chat Assistant Greeting
+                </label>
+                <textarea
+                  value={chatGreeting}
+                  onChange={(e) => setChatGreeting(e.target.value)}
+                  rows={3}
+                  placeholder="👋 Hi! I'm your AI Shopping Assistant..."
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6] resize-none"
+                />
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  WhatsApp Order Message Prefix
+                </label>
+                <input
+                  type="text"
+                  value={contactWhatsAppMessage}
+                  onChange={(e) => setContactWhatsAppMessage(e.target.value)}
+                  placeholder="Hi Upanishad Mobile Store, I would like to reserve/order:"
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+            </div>
+
+            {/* Homepage Section Titles */}
+            <div className="bg-white border border-ash rounded p-5 space-y-5">
+              <h2 className="font-serif text-title-md text-ink-black">Homepage Section Titles</h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                    Categories Section Title
+                  </label>
+                  <input
+                    type="text"
+                    value={homeCategoriesTitle}
+                    onChange={(e) => setHomeCategoriesTitle(e.target.value)}
+                    placeholder="Shop by Category"
+                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                  />
+                </div>
+                <div>
+                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                    Top Recommended Title
+                  </label>
+                  <input
+                    type="text"
+                    value={homeFeaturedTitle}
+                    onChange={(e) => setHomeFeaturedTitle(e.target.value)}
+                    placeholder="Top Recommended"
+                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                  />
+                </div>
+                <div>
+                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                    New Arrivals Title
+                  </label>
+                  <input
+                    type="text"
+                    value={homeNewArrivalsTitle}
+                    onChange={(e) => setHomeNewArrivalsTitle(e.target.value)}
+                    placeholder="New Arrivals"
+                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                  />
+                </div>
+                <div>
+                  <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                    All Products Title
+                  </label>
+                  <input
+                    type="text"
+                    value={homeAllProductsTitle}
+                    onChange={(e) => setHomeAllProductsTitle(e.target.value)}
+                    placeholder="All Products"
+                    className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
+                  Footer Copyright Text
+                </label>
+                <input
+                  type="text"
+                  value={footerCopyright}
+                  onChange={(e) => setFooterCopyright(e.target.value)}
+                  placeholder="All rights reserved."
+                  className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black focus:outline-none focus:border-[#004ac6]"
+                />
+              </div>
+            </div>
+
             {/* Phone Model Presets Section */}
             <div className="bg-white border border-ash rounded p-5 space-y-5">
-              <h2 className="font-serif text-title-md text-ink-black">Phone Model Presets</h2>
-              <div>
+              <h2 className="font-serif text-title-md text-ink-black">Phone Model Presets</h2>              <div>
                 <label className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">
                   Custom Phone Models List (One per line or comma-separated)
                 </label>

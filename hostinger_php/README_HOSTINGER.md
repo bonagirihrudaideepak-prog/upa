@@ -84,9 +84,33 @@ You can set `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`, `DB_PORT` as environment
 
 | Username | Password | Admin URL |
 | :--- | :--- | :--- |
-| `admin` | `admin123` | `https://yourdomain.com/admin` |
+| `Test123admin01` | `Flipkartzon01123` | `https://yourdomain.com/admin` |
 
-Change the password after first login by updating the `password_hash` in the `admin_users` table (use `password_hash()` in PHP).
+> The `db.sql` seeds this admin user and password hash automatically. Change the password after first login by updating the `password_hash` in the `admin_users` table (use `password_hash()` in PHP).
+
+---
+
+## 🛠️ Everything Is Editable From the Admin Panel
+
+Every piece of site content is stored in the `site_settings` table and editable from **Admin → Settings** (no code changes needed):
+
+| Area | Setting keys |
+| :--- | :--- |
+| Brand name | `store_name` (used in header, footer, admin, login, product detail) |
+| Marquee / top bar | `marquee_text` |
+| Contact & location | `contact_phone`, `contact_email`, `whatsapp_number`, `store_address`, `location_map_url` |
+| Social links | `facebook_url`, `instagram_url`, `youtube_url` |
+| Hero section | `hero_title`, `hero_subtitle` |
+| About page | `about_content` |
+| SEO | `seo_keywords` |
+| Footer | `footer_tagline`, `footer_copyright` |
+| Store messaging | `pickup_notice`, `pickup_label`, `chat_greeting`, `contact_whatsapp_message` |
+| Search | `search_placeholder` |
+| Homepage section titles | `home_categories_title`, `home_featured_title`, `home_new_arrivals_title`, `home_all_products_title` |
+
+Plus full CRUD for **Categories** (rename, image, deactivate→hides products), **Products** (create/edit/delete, move between categories, models/colors, no SKU), and **Offer banners** — all from the admin panel.
+
+> `config/database.php` auto-seeds any missing settings on first run, so a fresh import of `db.sql` + a single request fully initialises all keys. No manual SQL required.
 
 ---
 

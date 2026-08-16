@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
+  const { storeName } = useApp();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -35,7 +37,7 @@ export default function AdminLogin() {
       <div className="w-full max-w-sm">
         <div className="bg-white border border-ash rounded p-8">
           <h1 className="font-serif text-headline-md text-ink-black text-center mb-1">
-            <span className="butter-underline">Upanishad Mobile Store</span>
+            <span className="butter-underline">{storeName}</span>
           </h1>
           <p className="font-sans text-body-sm text-smoke text-center mb-8">
             Sign in to manage your store

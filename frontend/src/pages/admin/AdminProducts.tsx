@@ -34,12 +34,16 @@ export default function AdminProducts() {
 
   async function handleDelete(id: number) {
     setDeleting(true);
+    setError('');
     const res = await api.deleteProduct(id);
     if (res.success) {
       setProducts((prev) => prev.filter((p) => p.id !== id));
+      setDeleteId(null);
+    } else {
+      setError(res.error || 'Failed to delete product. Please try again.');
+      setDeleteId(null);
     }
     setDeleting(false);
-    setDeleteId(null);
   }
 
   const filtered = products.filter((p) =>

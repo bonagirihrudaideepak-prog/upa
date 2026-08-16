@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../../utils/api';
+import { useApp } from '../../context/AppContext';
 
 interface NavItem {
   label: string;
@@ -21,6 +22,7 @@ export default function AdminSidebar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const { storeName } = useApp();
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -45,7 +47,7 @@ export default function AdminSidebar() {
         </button>
 
         <Link to="/admin/dashboard" className="font-serif text-title-md font-bold text-ink-black tracking-tight">
-          Upanishad mobiles
+          {storeName}
         </Link>
 
         <Link to="/admin/settings" className="p-1 -mr-1" aria-label="Settings">
@@ -69,7 +71,7 @@ export default function AdminSidebar() {
       >
         <div className="px-6 pt-8 pb-6 flex items-center justify-between">
         <Link to="/admin/dashboard" className="font-serif text-title-md font-bold text-ink-black tracking-tight">
-            Upanishad mobiles
+            {storeName}
         </Link>
           <button
             onClick={() => setMobileOpen(false)}

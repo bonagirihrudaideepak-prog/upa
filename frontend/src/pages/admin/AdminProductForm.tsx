@@ -49,7 +49,6 @@ export default function AdminProductForm() {
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
-  const [sku, setSku] = useState('');
   const [stock, setStock] = useState('1');
   const [likesCount, setLikesCount] = useState('0');
   const [isFeatured, setIsFeatured] = useState(false);
@@ -96,7 +95,6 @@ export default function AdminProductForm() {
       setDescription(p.description || '');
       setPrice(String(p.price));
       setCategory(String(p.category));
-      setSku(p.sku || '');
       setStock(String(p.stock));
       setLikesCount(String(p.likes_count ?? 0));
       setIsFeatured(p.is_featured);
@@ -158,7 +156,7 @@ export default function AdminProductForm() {
     setImages((prev) => prev.filter((_, i) => i !== index));
   }
 
-  function addVariant(colorName = 'Midnight Black', colorCode = '#000000') {
+  function addVariant(colorName = '', colorCode = '') {
     setVariants((prev) => [...prev, { color: colorName, color_code: colorCode, model: '', stock: 10 }]);
   }
 
@@ -205,7 +203,6 @@ export default function AdminProductForm() {
     formData.append('description', description);
     formData.append('price', price);
     formData.append('category', category);
-    formData.append('sku', sku);
     formData.append('stock', stock);
     formData.append('likes_count', likesCount);
     formData.append('is_featured', String(isFeatured));
@@ -319,11 +316,7 @@ export default function AdminProductForm() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <label htmlFor="psku" className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">SKU</label>
-                  <input id="psku" type="text" value={sku} onChange={(e) => setSku(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]" />
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="pstock" className="font-sans text-label-sm text-smoke uppercase tracking-widest block mb-1.5">Stock Quantity</label>
                   <input id="pstock" type="number" value={stock} onChange={(e) => setStock(e.target.value)} className="w-full px-3.5 py-2.5 bg-white border border-ash rounded font-sans text-body-sm text-ink-black placeholder:text-smoke/50 focus:outline-none focus:border-[#004ac6]" />
