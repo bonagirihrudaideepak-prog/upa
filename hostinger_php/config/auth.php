@@ -10,6 +10,16 @@ function getJwtSecret(): string {
         return $secret;
     }
 
+    // Optional runtime credentials file (gitignored) may carry jwt_secret.
+    $credFile = __DIR__ . '/credentials.php';
+    if (is_file($credFile)) {
+        $fileCreds = require $credFile;
+        if (is_array($fileCreds) && !empty($fileCreds['jwt_secret'])) {
+            $secret = $fileCreds['jwt_secret'];
+            return $secret;
+        }
+    }
+
     // Fail closed in production: never fall back to a hardcoded, publicly known secret.
     $appEnv = strtolower((string)(getenv('APP_ENV') ?: ($_ENV['APP_ENV'] ?? $_SERVER['APP_ENV'] ?? 'production')));
     if ($appEnv === 'production' || $appEnv === 'prod') {

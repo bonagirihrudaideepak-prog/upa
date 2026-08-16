@@ -19,6 +19,8 @@ return [
     'name'     => getenv('DB_NAME') ?: 'your_database_name',
     'user'     => getenv('DB_USER') ?: 'your_database_user',
     'password' => getenv('DB_PASS') ?: 'your_database_password',
+    // JWT signing secret (production requirement). Generate with: php -r "echo bin2hex(random_bytes(32));"
+    'jwt_secret' => getenv('JWT_SECRET') ?: '',
     'admin'    => [
         'username' => getenv('ADMIN_USERNAME') ?: 'admin',
         'password' => getenv('ADMIN_PASSWORD') ?: '',
