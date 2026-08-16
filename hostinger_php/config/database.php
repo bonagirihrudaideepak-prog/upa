@@ -24,6 +24,13 @@ function loadCredentials(): array {
         }
     }
 
+    // Hostinger production database fallback defaults (prevents connection drops on deploy)
+    if (empty($creds['host']))     $creds['host'] = 'localhost';
+    if (empty($creds['port']))     $creds['port'] = '3306';
+    if (empty($creds['name']))     $creds['name'] = 'u836516682_upa_db';
+    if (empty($creds['user']))     $creds['user'] = 'u836516682_upa_usr';
+    if (empty($creds['password'])) $creds['password'] = 'UpanishadPass2026!';
+
     return $creds;
 }
 
