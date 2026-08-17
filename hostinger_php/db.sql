@@ -22,6 +22,7 @@ CREATE TABLE IF NOT EXISTS `products` (
     `price` DECIMAL(10, 2) NOT NULL,
     `category` VARCHAR(100) NOT NULL,
     `stock` INT DEFAULT 0,
+    `models` TEXT,
     `is_featured` BOOLEAN DEFAULT FALSE,
     `is_new_arrival` BOOLEAN DEFAULT FALSE,
     `is_offer` BOOLEAN DEFAULT FALSE,

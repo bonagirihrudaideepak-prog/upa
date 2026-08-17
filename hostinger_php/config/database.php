@@ -92,6 +92,11 @@ function autoInitDatabase(PDO $pdo): void {
             $pdo->exec("ALTER TABLE `categories` ADD COLUMN `image_path` TEXT AFTER `description`");
         } catch (Exception $e) {}
 
+        // Ensure products table has the `models` JSON/text column (idempotent migration for older DBs).
+        try {
+            $pdo->exec("ALTER TABLE `products` ADD COLUMN `models` TEXT NULL AFTER `stock`");
+        } catch (Exception $e) {}
+
         // Ensure high-performance composite B-Tree indexes exist for scale
         try { $pdo->exec("ALTER TABLE `products` ADD INDEX `idx_cat_created` (`category`, `created_at` DESC)"); } catch (Exception $e) {}
         try { $pdo->exec("ALTER TABLE `products` ADD INDEX `idx_feat_created` (`is_featured`, `created_at` DESC)"); } catch (Exception $e) {}
